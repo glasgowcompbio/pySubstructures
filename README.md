@@ -5,6 +5,7 @@ A Python package to perform unsupervised discoveries of motifs from tandem mass 
 Python TODO:
 - [X] Add codes from the lda repo.
 - [X] Tidy up codes, and keep only the ones we actually use.
+- [ ] MotifDB support
 - [ ] Classyfire functions
 - [ ] MAGMa-MS2LDA support
 - [ ] Gensim support

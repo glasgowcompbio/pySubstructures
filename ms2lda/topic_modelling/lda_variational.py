@@ -39,9 +39,8 @@ class VariationalLDA(object):
         #  If the corpus exists, make the word index and the (unused?) word doc matrix
         if self.corpus is not None:
             self.n_docs = len(self.corpus)
-            if self.word_index is not None:
+            if self.word_index is None:
                 self.word_index = self.find_unique_words()
-            logger.debug("Object created with {} documents".format(self.n_docs))
             self.n_words = len(self.word_index)
             self.make_doc_index()
             if self.normalise > -1:
@@ -119,7 +118,7 @@ class VariationalLDA(object):
             for word in self.corpus[doc]:
                 self.corpus[doc][word] = int(self.normalise * self.corpus[doc][word] / max_i)
 
-    def run_vb(self, n_its=1, verbose=True, initialise=True):
+    def run_vb(self, n_its=1, initialise=True):
         """
         Runs the VB inference
         :param n_its: the number of iterations
@@ -128,21 +127,20 @@ class VariationalLDA(object):
         :return: None
         """
         if initialise:
-            if verbose:
-                logger.debug("Initialising")
+            logger.debug("Initialising")
             self.init_vb()
-        if verbose:
-            logger.debug("Starting iterations")
+
+        logger.debug("Starting iterations")
         for it in range(n_its):
             start_time = time.perf_counter()
             diff = self.vb_step()
             end_time = time.perf_counter()
             self.its_performed += 1
             estimated_finish = ((end_time - start_time) * (n_its - it) / 60.0)
-            if verbose:
-                logger.info(
-                    "Iteration {} (change = {}) ({} seconds, I think I'll finish in {} minutes). Alpha: ({},{})".format(
-                        it, diff, end_time - start_time, estimated_finish, self.alpha.min(), self.alpha.max()))
+            logger.info("Iteration {} (change = {}) ({} seconds, "
+                        "I think I'll finish in {} minutes). "
+                        "Alpha: ({},{})".format(it, diff, end_time - start_time, estimated_finish,
+                                                self.alpha.min(), self.alpha.max()))
 
     def vb_step(self):
         """
@@ -256,7 +254,6 @@ class VariationalLDA(object):
                 if not word in word_index:
                     word_index[word] = pos
                     pos += 1
-        logger.info("Found {} unique words".format(len(word_index)))
         return word_index
 
     def make_doc_index(self):
