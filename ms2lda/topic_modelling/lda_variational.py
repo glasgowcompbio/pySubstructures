@@ -1,10 +1,10 @@
 import pickle
-import time
 
 import numpy as np
 from loguru import logger
 from scipy.special import polygamma as pg
 from scipy.special import psi as psi
+from tqdm import trange
 
 from .evaluation import compute_overlap_scores
 from ..constants import SMALL_NUMBER
@@ -44,7 +44,6 @@ class VariationalLDA(object):
             self.n_words = len(self.word_index)
             self.make_doc_index()
             if self.normalise > -1:
-                logger.debug("Normalising intensities")
                 self.normalise_intensities()
 
         self.K = K
@@ -127,20 +126,13 @@ class VariationalLDA(object):
         :return: None
         """
         if initialise:
-            logger.debug("Initialising")
             self.init_vb()
 
-        logger.debug("Starting iterations")
-        for it in range(n_its):
-            start_time = time.perf_counter()
+        pbar = trange(n_its, desc='diff', leave=True)
+        for it in pbar:
             diff = self.vb_step()
-            end_time = time.perf_counter()
-            self.its_performed += 1
-            estimated_finish = ((end_time - start_time) * (n_its - it) / 60.0)
-            logger.info("Iteration {} (change = {}) ({} seconds, "
-                        "I think I'll finish in {} minutes). "
-                        "Alpha: ({},{})".format(it, diff, end_time - start_time, estimated_finish,
-                                                self.alpha.min(), self.alpha.max()))
+            pbar.set_description("diff=%.6f" % (diff))
+            pbar.refresh()  # to show immediately the update
 
     def vb_step(self):
         """
@@ -276,7 +268,6 @@ class VariationalLDA(object):
         """
         # self.gamma_matrix = np.zeros((self.n_docs,self.K),np.float) + 1.0
         # self.phi_matrix = np.zeros((self.n_docs,self.n_words,self.K))
-        self.its_performed = 0
         self.phi_matrix = {}
         self.gamma_matrix = np.zeros((self.n_docs, self.K))
         for doc in self.corpus:
