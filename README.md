@@ -10,6 +10,7 @@ Python TODO:
 - [ ] MAGMa-MS2LDA support
 - [ ] Gensim support
 - [ ] MolnetEnhancer support
+- [ ] PALS support
 - [ ] Create a Python package
 
 Visualisation TODO:
