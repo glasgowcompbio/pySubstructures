@@ -2,6 +2,7 @@ import json
 
 from loguru import logger
 
+from .constants import FILE_FORMAT_MZML, FILE_FORMAT_MSP, FILE_FORMAT_MGF, BIN_WIDTHS
 from .preprocess import LoadMZML, LoadMSP, LoadMGF, MakeBinnedFeatures
 from .topic_modelling import VariationalLDA
 
@@ -29,19 +30,19 @@ class MS2LDAFeatureExtractor(object):
 
 def msfile_to_corpus(ms2_file, ms2_format, min_ms1_intensity, min_ms2_intensity, mz_tol, rt_tol, feature_set_name, K,
                      corpus_json=None):
-    if ms2_format == 'mzxml':
+    if ms2_format == FILE_FORMAT_MZML:
         loader = LoadMZML(mz_tol=mz_tol,
                           rt_tol=rt_tol, peaklist=None,
                           min_ms1_intensity=min_ms1_intensity,
                           min_ms2_intensity=min_ms2_intensity)
-    elif ms2_format == 'msp':
+    elif ms2_format == FILE_FORMAT_MSP:
         loader = LoadMSP(min_ms1_intensity=min_ms1_intensity,
                          min_ms2_intensity=min_ms2_intensity,
                          mz_tol=mz_tol,
                          rt_tol=rt_tol,
                          peaklist=None,
                          name_field="")
-    elif ms2_format == 'mgf':
+    elif ms2_format == FILE_FORMAT_MGF:
         loader = LoadMGF(min_ms1_intensity=min_ms1_intensity,
                          min_ms2_intensity=min_ms2_intensity,
                          mz_tol=mz_tol,
@@ -54,12 +55,9 @@ def msfile_to_corpus(ms2_file, ms2_format, min_ms1_intensity, min_ms2_intensity,
     logger.info('Loading %s using %s' % (ms2_file, loader))
     ms1, ms2, metadata = loader.load_spectra([ms2_file])
 
-    bin_widths = {'binned_005': 0.005,
-                  'binned_01': 0.01,
-                  'binned_05': 0.05,
-                  'binned_1': 0.1,
-                  'binned_5': 0.5}
-    bin_width = bin_widths[feature_set_name]
+    if feature_set_name not in BIN_WIDTHS:
+        raise NotImplementedError('Unsupported bin width')
+    bin_width = BIN_WIDTHS[feature_set_name]
     logger.info('bin_width = %f' % bin_width)
 
     fm = MakeBinnedFeatures(bin_width=bin_width)
