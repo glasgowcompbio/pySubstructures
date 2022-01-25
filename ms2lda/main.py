@@ -1,9 +1,11 @@
 import json
+import os
 
 from loguru import logger
 
 from .constants import FILE_FORMAT_MZML, FILE_FORMAT_MSP, FILE_FORMAT_MGF, BIN_WIDTHS
 from .preprocess import LoadMZML, LoadMSP, LoadMGF, MakeBinnedFeatures
+from .preprocess.common import create_if_not_exist
 from .topic_modelling import VariationalLDA
 
 
@@ -80,6 +82,11 @@ def msfile_to_corpus(ms2_file, ms2_format, min_ms1_intensity, min_ms2_intensity,
 
     if corpus_json is not None:
         logger.info('Saving lda_dict to %s' % corpus_json)
+
+        # if directory doesn't exist, create it
+        dirname = os.path.dirname(os.path.abspath(corpus_json))
+        create_if_not_exist(dirname)
+
         with open(corpus_json, 'w') as f:
             json.dump(lda_dict, f)
 

@@ -4,21 +4,24 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [packages]
+numpy = "*"
+scipy = "*"
+pandas = "*"
+seaborn = "*"
+scikit-learn = "*"
+matplotlib = "*"
+plotly = "*"
+loguru = "*"
 pymzml = "*"
 networkx = "*"
-numpy = "*"
-pandas = "*"
-scikit-learn = "*"
-scipy = "*"
 gensim = "*"
 tqdm = "*"
-seaborn = "*"
-matplotlib = "*"
-loguru = "*"
+jupyterlab = "*"
+ipython = "<8.0"
 
 [dev-packages]
-
-jupyterlab = "*"
+twine = "*"
+build = "*"
 
 [requires]
 python_version = "3"

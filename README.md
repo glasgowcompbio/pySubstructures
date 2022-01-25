@@ -6,6 +6,7 @@ Python TODO:
 - [X] Add codes from the lda repo.
 - [X] Tidy up codes, and keep only the ones we actually use.
 - [ ] MotifDB support
+- [ ] Matchms compatibility
 - [ ] Classyfire functions
 - [ ] MAGMa-MS2LDA support
 - [ ] Gensim support
@@ -18,4 +19,4 @@ Visualisation TODO:
 
 MS2LDA.org TODO:
 - [ ] Replace the lda codes used on the server with this package
-- [ ] Migrate server to Django 2.0 / Python 3
+- [X] Migrate server to Django 2.0 / Python 3
