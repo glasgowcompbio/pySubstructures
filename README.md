@@ -19,7 +19,7 @@ Maybe:
 - [ ] Classyfire functions
 
 Visualisation TODO:
-- [ ] Setup skeleton project for the offline viewer (see [issue #1](https://github.com/glasgowcompbio/pySubstructures/issues/1)).
+- [ ] Setup skeleton project for the offline viewer
 
 MS2LDA.org TODO:
 - [ ] Replace the lda codes used on the server with this package
