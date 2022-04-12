@@ -1,4 +1,4 @@
-name: pySubstructures
+name: pySub
 channels:
   - conda-forge
   - defaults
@@ -13,10 +13,11 @@ dependencies:
   - loguru
   - jupyterlab
   - ipywidgets
-  - pytorch
   - tqdm
   - networkx
   - gensim
+  - pip
   - pip:
     - pymzml==2.4.7
     - mass-spec-utils
+    - pyMolNetEnhancer

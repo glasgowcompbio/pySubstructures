@@ -165,7 +165,8 @@ class MakeBinnedFeatures(MakeFeatures):
                     to_remove.append(word)
             for word in to_remove:
                 del self.word_mz_range[word]
-            logger.info("After applying min_intensity_perc filter, {} words left".format(len(self.word_mz_range)))
+            logger.info("After applying min_intensity_perc filter, {} words left".format(
+                len(self.word_mz_range)))
 
         return self.corpus, self.word_mz_range
 
@@ -223,7 +224,8 @@ class MakeNominalFeatures(MakeFeatures):
                         word_name = 'fragment_' + str(frag_word)
                         if not word_name in word_names:
                             word_names.append(word_name)
-                            word_mz_range[word_name] = (frag_word - self.bin_width, frag_word + self.bin_width)
+                            word_mz_range[word_name] = (
+                                frag_word - self.bin_width, frag_word + self.bin_width)
                         self._add_word_to_corpus(word_name, file_name, doc_name, intensity)
 
                 if loss_mass >= self.min_loss and loss_mass <= self.max_loss:
@@ -233,7 +235,8 @@ class MakeNominalFeatures(MakeFeatures):
                         word_name = 'loss_' + str(loss_word)
                         if not word_name in word_names:
                             word_names.append(word_name)
-                            word_mz_range[word_name] = (loss_word - self.bin_width, loss_word + self.bin_width)
+                            word_mz_range[word_name] = (
+                                loss_word - self.bin_width, loss_word + self.bin_width)
                         self._add_word_to_corpus(word_name, file_name, doc_name, intensity)
 
         return self.corpus, word_mz_range

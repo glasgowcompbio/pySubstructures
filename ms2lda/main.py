@@ -3,9 +3,9 @@ import os
 
 from loguru import logger
 
-from .constants import FILE_FORMAT_MZML, FILE_FORMAT_MSP, FILE_FORMAT_MGF, BIN_WIDTHS
+from common import create_if_not_exist
+from constants import FILE_FORMAT_MZML, FILE_FORMAT_MSP, FILE_FORMAT_MGF, BIN_WIDTHS
 from .preprocess import LoadMZML, LoadMSP, LoadMGF, MakeBinnedFeatures
-from .preprocess.common import create_if_not_exist
 from .topic_modelling import VariationalLDA
 
 
@@ -30,7 +30,8 @@ class MS2LDAFeatureExtractor(object):
         return self.corpus[first_file_name]
 
 
-def msfile_to_corpus(ms2_file, ms2_format, min_ms1_intensity, min_ms2_intensity, mz_tol, rt_tol, feature_set_name, K,
+def msfile_to_corpus(ms2_file, ms2_format, min_ms1_intensity, min_ms2_intensity, mz_tol, rt_tol,
+                     feature_set_name, K,
                      corpus_json=None):
     if ms2_format == FILE_FORMAT_MZML:
         loader = LoadMZML(mz_tol=mz_tol,

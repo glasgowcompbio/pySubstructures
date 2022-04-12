@@ -7,7 +7,8 @@ from loguru import logger
 
 
 class MS1(object):
-    def __init__(self, id, mz, rt, intensity, file_name, scan_number=None, single_charge_precursor_mass=None):
+    def __init__(self, id, mz, rt, intensity, file_name, scan_number=None,
+                 single_charge_precursor_mass=None):
         self.id = id
         self.mz = mz
         self.rt = rt
@@ -65,5 +66,6 @@ def load_obj(filename):
         with gzip.GzipFile(filename, 'rb') as f:
             return pickle.load(f)
     except OSError:
-        logger.warning('Old, invalid or missing pickle in %s. Please regenerate this file.' % filename)
+        logger.warning(
+            'Old, invalid or missing pickle in %s. Please regenerate this file.' % filename)
         return None

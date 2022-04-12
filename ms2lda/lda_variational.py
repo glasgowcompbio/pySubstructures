@@ -6,8 +6,8 @@ from scipy.special import polygamma as pg
 from scipy.special import psi as psi
 from tqdm import trange
 
-from .evaluation import compute_overlap_scores
-from ..constants import SMALL_NUMBER
+from constants import SMALL_NUMBER
+from ms2lda.lda_evaluation import compute_overlap_scores
 
 
 class VariationalLDA(object):
@@ -172,7 +172,8 @@ class VariationalLDA(object):
                 init_alpha = self.gamma_matrix.mean(axis=0) / K
             alpha = init_alpha.copy()
             alphap = init_alpha.copy()
-            g_term = (psi(self.gamma_matrix) - psi(self.gamma_matrix.sum(axis=1))[:, None]).sum(axis=0)
+            g_term = (psi(self.gamma_matrix) - psi(self.gamma_matrix.sum(axis=1))[:, None]).sum(
+                axis=0)
             for it in range(maxit):
                 grad = M * (psi(alpha.sum()) - psi(alpha)) + g_term
                 H = -M * np.diag(pg(1, alpha)) + M * pg(1, alpha.sum())
