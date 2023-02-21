@@ -190,7 +190,7 @@ class FeatureMatcher(object):
         other_max_mz = [self.other_features[f][1] for f in self.other_features if
                         f.startswith(ftype)]
 
-        temp = zip(other_names, other_min_mz, other_max_mz)
+        temp = list(zip(other_names, other_min_mz, other_max_mz))
         temp.sort(key=lambda x: x[1])
         other_names, other_min_mz, other_max_mz = zip(*temp)
         other_names = list(other_names)

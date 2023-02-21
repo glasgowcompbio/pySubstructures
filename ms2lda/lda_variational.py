@@ -7,7 +7,7 @@ from scipy.special import psi as psi
 from tqdm import trange
 
 from constants import SMALL_NUMBER
-from ms2lda.lda_evaluation import compute_overlap_scores
+from ms2lda.lda_evaluation import compute_overlap_scores_from_dict
 
 
 class VariationalLDA(object):
@@ -442,11 +442,11 @@ class VariationalLDA(object):
                 logger.info("Done {}".format(ndocs))
 
         if compute_overlaps:
-            os = compute_overlap_scores(lda_dict)
+            os = compute_overlap_scores_from_dict(lda_dict)
             lda_dict['overlap_scores'] = os
 
-        if not filename == None:
-            with open(filename, 'w') as f:
+        if filename is not None:
+            with open(filename, 'wb') as f:
                 pickle.dump(lda_dict, f)
 
         return lda_dict

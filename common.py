@@ -52,7 +52,7 @@ def save_obj(obj, filename):
     out_dir = os.path.dirname(filename)
     create_if_not_exist(out_dir)
     logger.info('Saving %s to %s' % (type(obj), filename))
-    with gzip.GzipFile(filename, 'w') as f:
+    with gzip.GzipFile(filename, 'wb') as f:
         pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 

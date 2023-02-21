@@ -2,6 +2,8 @@ import pickle
 import sys
 
 import numpy as np
+import pandas as pd
+from tqdm.auto import tqdm
 
 
 def match_topics_across_dictionaries(lda1=None, lda2=None, file1=None, file2=None,
@@ -150,12 +152,12 @@ def match_topics_across_dictionaries(lda1=None, lda2=None, file1=None, file2=Non
                 annotation = best_match[topic2][6]
                 if len(annotation) > 0:
                     lda2['topic_metadata'][topic2]['annotation'] = annotation
-        if new_file2 == None:
-            with open(file2, 'w') as f:
+        if new_file2 is None:
+            with open(file2, 'wb') as f:
                 pickle.dump(lda2, f)
             print("Dictionary with copied annotations saved to {}".format(file2))
         else:
-            with open(new_file2, 'w') as f:
+            with open(new_file2, 'wb') as f:
                 pickle.dump(lda2, f)
             print("Dictionary with copied annotations saved to {}".format(new_file2))
 
@@ -236,9 +238,9 @@ def write_topic_report(lda_dictionary, filename, backend='agg'):
         # topic_list = zip(topic_list,[int(t.split('_')[1]) for t in topic_list])
         # topic_list.sort(key = lambda x: x[1])
         # topic_list,_ = zip(*topic_list)
-        for topic in topic_list:
-            sys.stdout.write(topic + ' ')
-            sys.stdout.flush()
+        for topic in tqdm(topic_list):
+            # sys.stdout.write(topic + ' ')
+            # sys.stdout.flush()
 
             word_probs = lda_dictionary['beta'][topic]
             plt.figure(figsize=(20, 10))
@@ -264,8 +266,8 @@ def write_topic_report(lda_dictionary, filename, backend='agg'):
             # add some text
             textPage = plt.figure(figsize=(20, 10))
             textPage.clf()
-            topic_probs = zip(lda_dictionary['beta'][topic].keys(),
-                              lda_dictionary['beta'][topic].values())
+            topic_probs = list(zip(lda_dictionary['beta'][topic].keys(),
+                              lda_dictionary['beta'][topic].values()))
             topic_probs.sort(key=lambda x: x[1], reverse=True)
             col = 0
             n_rows = 20
@@ -334,7 +336,10 @@ def get_motifs_in_scans(lda_dictionary, metadata, overlap_thresh=0.3, p_thresh=0
         for m in motifs:
             motif_dict = {}
             motif_dict["scan"] = doc
-            motif_dict["precursor.mass"] = metadata[doc]['precursormass']
+            try:
+                motif_dict["precursor.mass"] = metadata[doc]['precursormass']
+            except:
+                motif_dict["precursor.mass"] = metadata[doc]['precursor_mass']
             try:
                 motif_dict["retention.time"] = metadata[doc]['parentrt']
             except:
