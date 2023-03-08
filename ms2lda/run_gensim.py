@@ -35,6 +35,22 @@ import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 
 
+def build_gensim_corpus(lda_dict, normalize):
+    corpus = []
+    index2doc = []
+    for doc in sorted(lda_dict['corpus'].keys()):
+        words = lda_dict['corpus'][doc]
+        bow = []
+        max_score = max(words.values())
+        for word in sorted(words.keys()):
+            score = words[word]
+            normalized_score = score * normalize / max_score
+            bow.append((lda_dict['word_index'][word], normalized_score))
+        corpus.append(bow)
+        index2doc.append(doc)
+    return corpus, index2doc
+
+
 def build_parser():
     parser = ArgumentParser(description="Run gensim lda on MS2 file and insert into db", epilog=textwrap.dedent("""
 
