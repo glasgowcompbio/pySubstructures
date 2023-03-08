@@ -6,7 +6,7 @@ from scipy.special import polygamma as pg
 from scipy.special import psi as psi
 from tqdm import trange
 
-from pySubstructures.constants import SMALL_NUMBER
+from constants import SMALL_NUMBER
 from lda_evaluation import compute_overlap_scores_from_dict
 
 
