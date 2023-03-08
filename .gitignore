@@ -109,3 +109,6 @@ notebooks/test_data
 test.dict
 test_motifs_in_scans.tsv
 test_topic_report.pdf
+
+# Specific folders
+data/
