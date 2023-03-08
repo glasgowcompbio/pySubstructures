@@ -1,4 +1,4 @@
-name: pySub
+name: pySubstructures
 channels:
   - conda-forge
   - defaults
@@ -17,6 +17,7 @@ dependencies:
   - networkx
   - gensim
   - pip
+  - tqdm
   - pip:
     - pymzml==2.4.7
     - mass-spec-utils

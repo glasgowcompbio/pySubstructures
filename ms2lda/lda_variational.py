@@ -7,7 +7,7 @@ from scipy.special import psi as psi
 from tqdm import trange
 
 from constants import SMALL_NUMBER
-from ms2lda.lda_evaluation import compute_overlap_scores_from_dict
+from lda_evaluation import compute_overlap_scores_from_dict
 
 
 class VariationalLDA(object):
