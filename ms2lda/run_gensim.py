@@ -21,10 +21,11 @@ sys.path.append('../lda/code')
 
 # django.setup()
 
-from ms2lda_feature_extraction import LoadMZML, MakeBinnedFeatures, LoadMSP, LoadMGF
-from basicviz.models import Experiment, User, BVFeatureSet, UserExperiment, JobLog
-from load_dict_functions import load_dict, load_corpus_gensim, build_gensim_corpus
-from ms2lda.lda_variational import VariationalLDA
+from loaders import LoadMGF, LoadMSP, LoadMZML
+from feature_maker import MakeBinnedFeatures
+# from basicviz.models import Experiment, User, BVFeatureSet, UserExperiment, JobLog
+# from load_dict_functions import load_dict, load_corpus_gensim, build_gensim_corpus
+from lda_variational import VariationalLDA
 from gensim.models.ldamulticore import LdaMulticore
 from gensim.models.ldamodel import LdaModel
 import numpy as np
@@ -108,7 +109,7 @@ def build_parser():
     insert.add_argument('--featureset', default='binned_005',
                         choices=('binned_1', 'binned_01', 'binned_5', 'binned_005', 'binned_05'),
                         help='Choose width of ms2 bins')
-    insert.set_defaults(func=insert_lda)
+    # insert.set_defaults(func=insert_lda)
 
     # insert
     insert_gensim = sc.add_parser('insert_gensim', help='Insert gensim lda result into db')
@@ -128,7 +129,7 @@ def build_parser():
     insert_gensim.add_argument('--feature_set_name', default='binned_005',
                                choices=('binned_1', 'binned_01', 'binned_5', 'binned_005', 'binned_05'),
                                help='Choose width of ms2 bins')
-    insert_gensim.set_defaults(func=insert_gensim_lda)
+    # insert_gensim.set_defaults(func=insert_gensim_lda)
 
     return parser
 
@@ -286,46 +287,46 @@ def gensim(corpusjson, ldafile,
         json.dump(lda_dict, f)
 
 
-def insert_gensim_lda(corpusjson, ldafile, experiment, owner, description, normalize, min_prob_to_keep_beta,
-                      min_prob_to_keep_theta, min_prob_to_keep_phi, feature_set_name):
-    featureset, new_experiment = create_experiment(description, experiment, owner, feature_set_name)
-    verbose = True
-
-    print('Reading corpus json file')
-    corpus_dict = json.load(corpusjson)
-    load_corpus_gensim(new_experiment, corpus_dict, feature_set_name, ldafile, min_prob_to_keep_beta,
-                       min_prob_to_keep_phi,
-                       min_prob_to_keep_theta, normalize, verbose)
-
-    # Done inserting
-    new_experiment.status = '1'
-    new_experiment.save()
-
-
-def insert_lda(ldajson, experiment, owner, description, feature_set_name):
-    featureset, new_experiment = create_experiment(description, experiment, owner, feature_set_name)
-
-    ldajson = open(ldajson)
-    lda_dict = json.load(ldajson)
-    load_dict(lda_dict, new_experiment, feature_set_name=featureset.name)
-
-    new_experiment.status = '1'
-    new_experiment.save()
+# def insert_gensim_lda(corpusjson, ldafile, experiment, owner, description, normalize, min_prob_to_keep_beta,
+#                       min_prob_to_keep_theta, min_prob_to_keep_phi, feature_set_name):
+#     featureset, new_experiment = create_experiment(description, experiment, owner, feature_set_name)
+#     verbose = True
+#
+#     print('Reading corpus json file')
+#     corpus_dict = json.load(corpusjson)
+#     load_corpus_gensim(new_experiment, corpus_dict, feature_set_name, ldafile, min_prob_to_keep_beta,
+#                        min_prob_to_keep_phi,
+#                        min_prob_to_keep_theta, normalize, verbose)
+#
+#     # Done inserting
+#     new_experiment.status = '1'
+#     new_experiment.save()
 
 
-def create_experiment(description, experiment, owner, feature_set_name):
-    user = User.objects.get(username=owner)
-    featureset = BVFeatureSet.objects.get(name=feature_set_name)
-    new_experiment = Experiment(name=experiment,
-                                description=description,
-                                status='0',
-                                experiment_type='0',
-                                featureset=featureset)
-    new_experiment.save()
-    UserExperiment.objects.create(user=user, experiment=new_experiment, permission='edit')
-    JobLog.objects.create(user=user, experiment=new_experiment,
-                          tasktype='Uploaded and ' + new_experiment.experiment_type)
-    return featureset, new_experiment
+# def insert_lda(ldajson, experiment, owner, description, feature_set_name):
+#     featureset, new_experiment = create_experiment(description, experiment, owner, feature_set_name)
+#
+#     ldajson = open(ldajson)
+#     lda_dict = json.load(ldajson)
+#     load_dict(lda_dict, new_experiment, feature_set_name=featureset.name)
+#
+#     new_experiment.status = '1'
+#     new_experiment.save()
+
+
+# def create_experiment(description, experiment, owner, feature_set_name):
+#     user = User.objects.get(username=owner)
+#     featureset = BVFeatureSet.objects.get(name=feature_set_name)
+#     new_experiment = Experiment(name=experiment,
+#                                 description=description,
+#                                 status='0',
+#                                 experiment_type='0',
+#                                 featureset=featureset)
+#     new_experiment.save()
+#     UserExperiment.objects.create(user=user, experiment=new_experiment, permission='edit')
+#     JobLog.objects.create(user=user, experiment=new_experiment,
+#                           tasktype='Uploaded and ' + new_experiment.experiment_type)
+#     return featureset, new_experiment
 
 
 def main(argv=sys.argv[1:]):

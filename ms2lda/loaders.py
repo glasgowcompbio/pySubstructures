@@ -4,8 +4,8 @@ import re
 import numpy as np
 from loguru import logger
 
-from common import MS1
-from constants import PROTON_MASS
+from pySubstructures.common import MS1
+from pySubstructures.constants import PROTON_MASS
 
 
 class Loader(object):
