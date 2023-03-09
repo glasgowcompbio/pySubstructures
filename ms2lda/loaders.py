@@ -8,6 +8,39 @@ from ms2lda.common import MS1
 from ms2lda.constants import PROTON_MASS
 
 
+def load_spectra_from_file(ms2_file,
+                           min_ms1_intensity,
+                           min_ms2_intensity,
+                           mz_tol,
+                           rt_tol):
+    """Loads and filters spectra
+    The file type options are .mzxml, .msp, mgf"""
+    file_extension = os.path.splitext(ms2_file)[1].lower()
+    if file_extension == '.mzxml':
+        loader = LoadMZML(mz_tol=mz_tol,
+                          rt_tol=rt_tol, peaklist=None,
+                          min_ms1_intensity=min_ms1_intensity,
+                          min_ms2_intensity=min_ms2_intensity)
+    elif file_extension == '.msp':
+        loader = LoadMSP(min_ms1_intensity=min_ms1_intensity,
+                         min_ms2_intensity=min_ms2_intensity,
+                         mz_tol=mz_tol,
+                         rt_tol=rt_tol,
+                         peaklist=None,
+                         name_field="")
+    elif file_extension == '.mgf':
+        loader = LoadMGF(min_ms1_intensity=min_ms1_intensity,
+                         min_ms2_intensity=min_ms2_intensity,
+                         mz_tol=mz_tol,
+                         rt_tol=rt_tol,
+                         peaklist=None,
+                         name_field="")
+    else:
+        raise NotImplementedError('Unknown ms2 format')
+    ms1, ms2, metadata = loader.load_spectra([ms2_file])
+    return ms1, ms2, metadata
+
+
 class Loader(object):
     """
     Abstract loader class

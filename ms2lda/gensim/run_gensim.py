@@ -11,7 +11,6 @@ import sys
 
 from tqdm import tqdm
 
-from ms2lda.utils import save_json_file
 # Never let numpy use more than one core, otherwise each worker of LdaMulticore will use all cores for numpy
 # TODO allow multicore usage when not running LdaMulticore
 
@@ -26,7 +25,7 @@ sys.path.append('../lda/code')
 
 # django.setup()
 
-from ms2lda.loaders import LoadMGF, LoadMSP, LoadMZML
+from ms2lda.loaders import load_spectra_from_file
 from ms2lda.feature_maker import MakeBinnedFeatures
 # from basicviz.models import Experiment, User, BVFeatureSet, UserExperiment, JobLog
 # from load_dict_functions import load_dict, load_corpus_gensim, build_gensim_corpus
@@ -154,39 +153,6 @@ def build_parser():
     return parser
 
 
-def load_spectra(ms2_file,
-                 min_ms1_intensity,
-                 min_ms2_intensity,
-                 mz_tol,
-                 rt_tol):
-    """Loads and filters spectra
-    The file type options are .mzxml, .msp, mgf"""
-    file_extension = os.path.splitext(ms2_file)[1].lower()
-    if file_extension == '.mzxml':
-        loader = LoadMZML(mz_tol=mz_tol,
-                          rt_tol=rt_tol, peaklist=None,
-                          min_ms1_intensity=min_ms1_intensity,
-                          min_ms2_intensity=min_ms2_intensity)
-    elif file_extension == '.msp':
-        loader = LoadMSP(min_ms1_intensity=min_ms1_intensity,
-                         min_ms2_intensity=min_ms2_intensity,
-                         mz_tol=mz_tol,
-                         rt_tol=rt_tol,
-                         peaklist=None,
-                         name_field="")
-    elif file_extension == '.mgf':
-        loader = LoadMGF(min_ms1_intensity=min_ms1_intensity,
-                         min_ms2_intensity=min_ms2_intensity,
-                         mz_tol=mz_tol,
-                         rt_tol=rt_tol,
-                         peaklist=None,
-                         name_field="")
-    else:
-        raise NotImplementedError('Unknown ms2 format')
-    ms1, ms2, metadata = loader.load_spectra([ms2_file])
-    return ms1, ms2, metadata
-
-
 def msfile2corpus(ms2_file,
                   min_ms1_intensity, min_ms2_intensity,
                   mz_tol, rt_tol,
@@ -194,7 +160,7 @@ def msfile2corpus(ms2_file,
                   k,
                   corpusjson):
     # todo Move the loading of multiple files to loader.
-    ms1, ms2, metadata = load_spectra(ms2_file, min_ms1_intensity, min_ms2_intensity, mz_tol, rt_tol)
+    ms1, ms2, metadata = load_spectra_from_file(ms2_file, min_ms1_intensity, min_ms2_intensity, mz_tol, rt_tol)
     assert len(ms2) > 0, "No spectra remained after filtering"
     bin_widths = {'binned_005': 0.005,
                   'binned_01': 0.01,
