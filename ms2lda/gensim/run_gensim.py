@@ -11,6 +11,7 @@ import sys
 
 from tqdm import tqdm
 
+from ms2lda.utils import save_json_file
 # Never let numpy use more than one core, otherwise each worker of LdaMulticore will use all cores for numpy
 # TODO allow multicore usage when not running LdaMulticore
 
@@ -160,19 +161,19 @@ def msfile2corpus(ms2_file,
                   k,
                   corpusjson):
     file_extension = os.path.splitext(ms2_file)[1].lower()
-    if file_extension == 'mzxml':
+    if file_extension == '.mzxml':
         loader = LoadMZML(mz_tol=mz_tol,
                           rt_tol=rt_tol, peaklist=None,
                           min_ms1_intensity=min_ms1_intensity,
                           min_ms2_intensity=min_ms2_intensity)
-    elif file_extension == 'msp':
+    elif file_extension == '.msp':
         loader = LoadMSP(min_ms1_intensity=min_ms1_intensity,
                          min_ms2_intensity=min_ms2_intensity,
                          mz_tol=mz_tol,
                          rt_tol=rt_tol,
                          peaklist=None,
                          name_field="")
-    elif file_extension == 'mgf':
+    elif file_extension == '.mgf':
         loader = LoadMGF(min_ms1_intensity=min_ms1_intensity,
                          min_ms2_intensity=min_ms2_intensity,
                          mz_tol=mz_tol,
@@ -182,7 +183,7 @@ def msfile2corpus(ms2_file,
     else:
         raise NotImplementedError('Unknown ms2 format')
     ms1, ms2, metadata = loader.load_spectra([ms2_file])
-
+    assert len(ms2) > 0, "No spectra remained after filtering"
     bin_widths = {'binned_005': 0.005,
                   'binned_01': 0.01,
                   'binned_05': 0.05,
@@ -193,7 +194,8 @@ def msfile2corpus(ms2_file,
 
     fm = MakeBinnedFeatures(bin_width=bin_width)
     corpus, features = fm.make_features(ms2)
-    corpus = corpus[corpus.keys()[0]]
+    # Remove the file name from the dictionary
+    corpus = corpus[list(corpus.keys())[0]]
 
     # To insert in db some additional data is generated inVariationalLDA
     vlda = VariationalLDA(corpus=corpus, K=k)
