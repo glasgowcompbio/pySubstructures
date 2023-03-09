@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+"""File for the command line implementation of running gensim.
+The code needed for running gensim can be found in gensim_functions"""
+
 import textwrap
 from argparse import ArgumentParser, FileType, RawDescriptionHelpFormatter
 import json
@@ -21,11 +25,11 @@ sys.path.append('../lda/code')
 
 # django.setup()
 
-from loaders import LoadMGF, LoadMSP, LoadMZML
-from feature_maker import MakeBinnedFeatures
+from ms2lda.loaders import LoadMGF, LoadMSP, LoadMZML
+from ms2lda.feature_maker import MakeBinnedFeatures
 # from basicviz.models import Experiment, User, BVFeatureSet, UserExperiment, JobLog
 # from load_dict_functions import load_dict, load_corpus_gensim, build_gensim_corpus
-from lda_variational import VariationalLDA
+from ms2lda.lda_variational import VariationalLDA
 from gensim.models.ldamulticore import LdaMulticore
 from gensim.models.ldamodel import LdaModel
 import numpy as np
