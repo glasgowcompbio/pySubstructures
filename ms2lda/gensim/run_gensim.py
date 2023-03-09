@@ -73,7 +73,6 @@ def build_parser():
     corpus = sc.add_parser('corpus', help='Generate corpus/features from MS2 file')
     corpus.add_argument('ms2_file', help="MS2 file")
     corpus.add_argument('corpusjson', type=FileType('w'), help="corpus file")
-    corpus.add_argument('-f', '--ms2_format', default='msp', help='Format of MS2 file', choices=('msp', 'mgf', 'mzxml'))
     corpus.add_argument('--min_ms1_intensity', type=float, default=0.0,
                         help='Minimum intensity of MS1 peaks to store  (default: %(default)s)')
     corpus.add_argument('--min_ms2_intensity', type=float, default=5000.0,
@@ -154,25 +153,26 @@ def build_parser():
     return parser
 
 
-def msfile2corpus(ms2_file, ms2_format,
+def msfile2corpus(ms2_file,
                   min_ms1_intensity, min_ms2_intensity,
                   mz_tol, rt_tol,
                   feature_set_name,
                   k,
                   corpusjson):
-    if ms2_format == 'mzxml':
+    file_extension = os.path.splitext(ms2_file)[1].lower()
+    if file_extension == 'mzxml':
         loader = LoadMZML(mz_tol=mz_tol,
                           rt_tol=rt_tol, peaklist=None,
                           min_ms1_intensity=min_ms1_intensity,
                           min_ms2_intensity=min_ms2_intensity)
-    elif ms2_format == 'msp':
+    elif file_extension == 'msp':
         loader = LoadMSP(min_ms1_intensity=min_ms1_intensity,
                          min_ms2_intensity=min_ms2_intensity,
                          mz_tol=mz_tol,
                          rt_tol=rt_tol,
                          peaklist=None,
                          name_field="")
-    elif ms2_format == 'mgf':
+    elif file_extension == 'mgf':
         loader = LoadMGF(min_ms1_intensity=min_ms1_intensity,
                          min_ms2_intensity=min_ms2_intensity,
                          mz_tol=mz_tol,
