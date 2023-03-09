@@ -24,3 +24,20 @@ Visualisation TODO:
 MS2LDA.org TODO:
 - [ ] Replace the lda codes used on the server with this package
 - [X] Migrate server to Django 2.0 / Python 3
+
+## Installation for development
+### Prepare environment
+
+```
+conda create --name pySubstructures python=3.7
+conda activate pySubstructures
+```
+### Clone repository
+Clone the present repository, e.g. by running
+```
+git clone https://github.com/glasgowcompbio/pySubstructures.git
+```
+And then install the required dependencies, e.g. by running the following from within the cloned directory
+```
+pip install -e .
+```
