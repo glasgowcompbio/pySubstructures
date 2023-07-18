@@ -3,12 +3,12 @@ import os
 import sys
 
 
-from constants import MOTIFDB_SERVER_URL
 from motifdb.main import acquire_motifdb, FeatureMatcher
 from ms2lda.feature_maker import MakeBinnedFeatures
 from ms2lda.lda_variational import VariationalLDA
 from ms2lda.loaders import LoadMGF
 from ms2lda.reporting import write_topic_report, write_motifs_in_scans
+from ms2lda.constants import MOTIFDB_SERVER_URL
 
 """Parsing Args"""
 

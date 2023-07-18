@@ -4,7 +4,7 @@ import os
 import numpy as np
 import requests
 
-from constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
+from ms2lda.constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
 
 
 def acquire_motifdb(db_list):

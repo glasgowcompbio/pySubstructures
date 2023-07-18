@@ -6,7 +6,7 @@ import sys
 
 import requests
 
-from constants import MS2LDA_SERVER_URL
+from ms2lda.constants import MS2LDA_SERVER_URL
 
 
 def main():
