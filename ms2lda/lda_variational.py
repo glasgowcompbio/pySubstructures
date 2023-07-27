@@ -100,7 +100,7 @@ class VariationalLDA(object):
         self.n_words = len(self.word_index)
 
         # Now make the fixed rows of beta
-        self.beta_matrix = np.zeros((self.K, self.n_words), np.float) + SMALL_NUMBER
+        self.beta_matrix = np.zeros((self.K, self.n_words), float) + SMALL_NUMBER
         for topic, spectrum in fixed_topics.items():
             topic_pos = self.topic_index[topic]
             for word, intensity in spectrum.items():
@@ -267,7 +267,7 @@ class VariationalLDA(object):
         # TODO: tidy this up
         :return: None
         """
-        # self.gamma_matrix = np.zeros((self.n_docs,self.K),np.float) + 1.0
+        # self.gamma_matrix = np.zeros((self.n_docs,self.K),float) + 1.0
         # self.phi_matrix = np.zeros((self.n_docs,self.n_words,self.K))
         self.phi_matrix = {}
         self.gamma_matrix = np.zeros((self.n_docs, self.K))

@@ -3,6 +3,11 @@ import os
 import sys
 
 
+# Modify sys.path to include the parent directory
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+
+
 from motifdb.main import acquire_motifdb, FeatureMatcher
 from ms2lda.feature_maker import MakeBinnedFeatures
 from ms2lda.lda_variational import VariationalLDA
@@ -10,31 +15,35 @@ from ms2lda.loaders import LoadMGF
 from ms2lda.reporting import write_topic_report, write_motifs_in_scans
 from ms2lda.constants import MOTIFDB_SERVER_URL
 
+
+# Restore sys.path to its original state if needed
+sys.path.remove(parent_dir)
+
 """Parsing Args"""
 
 parser = argparse.ArgumentParser(description='Creates MS2LDA')
-parser.add_argument('input_format', help='input_format')
-parser.add_argument('input_iterations', type=int, help='input_iterations')
-parser.add_argument('input_minimum_ms2_intensity', type=float, help='input_minimum_ms2_intensity')
-parser.add_argument('input_free_motifs', type=int, help='input_free_motifs')
-parser.add_argument('input_bin_width', type=float, help='input_bin_width')
-parser.add_argument('input_network_overlap', type=float, help='input_network_overlap')
-parser.add_argument('input_network_pvalue', type=float, help='input_network_pvalue')
-parser.add_argument('input_network_topx', type=int, help='input_network_topx')
+parser.add_argument('--input_format', help='input_format')
+parser.add_argument('--input_iterations', type=int, help='input_iterations')
+parser.add_argument('--input_minimum_ms2_intensity', type=float, help='input_minimum_ms2_intensity')
+parser.add_argument('--input_free_motifs', type=int, help='input_free_motifs')
+parser.add_argument('--input_bin_width', type=float, help='input_bin_width')
+parser.add_argument('--input_network_overlap', type=float, help='input_network_overlap')
+parser.add_argument('--input_network_pvalue', type=float, help='input_network_pvalue')
+parser.add_argument('--input_network_topx', type=int, help='input_network_topx')
 
-parser.add_argument('gnps_motif_include', help='gnps_motif_include')
-parser.add_argument('massbank_motif_include', help='massbank_motif_include')
-parser.add_argument('urine_motif_include', help='urine_motif_include')
-parser.add_argument('euphorbia_motif_include', help='euphorbia_motif_include')
-parser.add_argument('rhamnaceae_motif_include', help='rhamnaceae_motif_include')
-parser.add_argument('strep_salin_motif_include', help='strep_salin_motif_include')
-parser.add_argument('photorhabdus_motif_include', help='photorhabdus_motif_include')
-parser.add_argument('user_motif_sets', help='user_motif_sets')
+parser.add_argument('--gnps_motif_include', help='gnps_motif_include')
+parser.add_argument('--massbank_motif_include', help='massbank_motif_include')
+parser.add_argument('--urine_motif_include', help='urine_motif_include')
+parser.add_argument('--euphorbia_motif_include', help='euphorbia_motif_include')
+parser.add_argument('--rhamnaceae_motif_include', help='rhamnaceae_motif_include')
+parser.add_argument('--strep_salin_motif_include', help='strep_salin_motif_include')
+parser.add_argument('--photorhabdus_motif_include', help='photorhabdus_motif_include')
+parser.add_argument('--user_motif_sets', help='user_motif_sets')
 
-parser.add_argument('input_mgf_file', help='input_mgf_file')
-parser.add_argument('input_pairs_file', help='input_pairs_file')
-parser.add_argument('input_mzmine2_folder', help='input_mzmine2_folder')
-parser.add_argument('output_prefix', help='output_prefix')
+parser.add_argument('--input_mgf_file', help='input_mgf_file')
+parser.add_argument('--input_pairs_file', help='input_pairs_file')
+parser.add_argument('--input_mzmine2_folder', help='input_mzmine2_folder')
+parser.add_argument('--output_prefix', help='output_prefix')
 
 args = parser.parse_args()
 
@@ -140,7 +149,7 @@ print("Loaded {} spectra".format(len(ms1)))
 m = MakeBinnedFeatures(
     bin_width=input_bin_width)  # What value do you want here?? TODO: Parameterize
 corpus, features = m.make_features(ms2)
-corpus = corpus[corpus.keys()[0]]
+corpus = corpus[list(corpus.keys())[0]]
 
 fm = FeatureMatcher(motifdb_features, features)
 motifdb_spectra = fm.convert(motifdb_spectra)
@@ -191,7 +200,7 @@ except:
 overlap_thresh = args.input_network_overlap
 p_thresh = args.input_network_pvalue
 X = args.input_network_topx
-write_motifs_in_scans(vd, metadata, overlap_thresh, p_thresh, X, motifdb_metadata)
+write_motifs_in_scans(vd, metadata, overlap_thresh, p_thresh, X, motifdb_metadata, output_prefix)
 
 # Reformatting the list of cluster summary
 # TODO

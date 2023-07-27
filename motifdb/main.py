@@ -3,15 +3,18 @@ import os
 
 import numpy as np
 import requests
+import urllib3
+import certifi
 
 from ms2lda.constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
 
+
+http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
 def acquire_motifdb(db_list):
     data = {}
     data['motifset_id_list'] = db_list
     data['filter'] = 'True'
-
     output = requests.post(MOTIFDB_SERVER_URL + 'get_motifset/', data=data, verify=False).json()
     motifdb_spectra = output['motifs']
     motifdb_metadata = output['metadata']
@@ -24,7 +27,9 @@ def acquire_motifdb(db_list):
 
 
 def get_motifset_list():
-    output = requests.get(MOTIFDB_SERVER_URL + 'list_motifsets')
+
+    url = MOTIFDB_SERVER_URL + 'list_motifsets'
+    output = http.request("GET",url)
     motifset_list = output.json()
     return motifset_list
 
@@ -52,8 +57,9 @@ def post_motifsets(motifsets, filter_threshold=0.95):
 
 
 def get_motifset_metadata(motif_id):
+
     url = MOTIFDB_SERVER_URL + 'get_motifset_metadata/{}/'.format(motif_id)
-    output = requests.get(url)
+    output = http.request("GET",url)
     motif_metadata = output.json()
     return motif_metadata
 
