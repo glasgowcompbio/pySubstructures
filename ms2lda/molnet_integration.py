@@ -129,7 +129,7 @@ def write_output_files(lda_dictionary, pairs_file, output_name_prefix, metadata,
             heads += motifs_with_links
         else:
             heads += all_motifs
-        writer.writerow([s.encode('utf-8') for s in heads])
+        writer.writerow(heads)
         for doc in all_docs:
             try:
                 motifs = list(doc_to_motif[doc])
