@@ -7,10 +7,11 @@ import requests
 from ms2lda.constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
 
 
-def acquire_motifdb(db_list):
+def acquire_motifdb(db_list, filter_threshold=0.95):
     data = {}
     data['motifset_id_list'] = db_list
     data['filter'] = 'True'
+    data['filter_threshold'] = filter_threshold
 
     output = requests.post(MOTIFDB_SERVER_URL + 'get_motifset/', data=data, verify=False).json()
     motifdb_spectra = output['motifs']
