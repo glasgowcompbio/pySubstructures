@@ -8,11 +8,22 @@ from tqdm import tqdm
 import numpy as np
 from loguru import logger
 
+
+# Modify sys.path to include the parent directory
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+
 from ms2lda.loaders import LoadMGF, LoadMSP, LoadMZML
 from ms2lda.feature_maker import MakeBinnedFeatures
 from ms2lda.lda_variational import VariationalLDA
 from gensim.models.ldamulticore import LdaMulticore
 from gensim.models.ldamodel import LdaModel
+
+# Restore sys.path to its original state if needed
+sys.path.remove(parent_dir)
+
+
+
 
 # Never let numpy use more than one core, otherwise each worker of LdaMulticore will use all cores for numpy
 # TODO allow multicore usage when not running LdaMulticore

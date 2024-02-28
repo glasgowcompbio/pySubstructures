@@ -1,8 +1,18 @@
 import csv
+import os
+import sys
 
 import networkx as nx
 import pandas as pd
-from pyMolNetEnhancer import Mass2Motif_2_Network, make_motif_graphml
+# Modify sys.path to include the parent directory
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+
+from ms2lda.molnetenhancer import Mass2Motif_2_Network, make_motif_graphml
+
+# Restore sys.path to its original state if needed
+sys.path.remove(parent_dir)
+
 
 
 def write_output_files(lda_dictionary, pairs_file, output_name_prefix, metadata,
@@ -13,9 +23,9 @@ def write_output_files(lda_dictionary, pairs_file, output_name_prefix, metadata,
     components_to_ignore.add('-1')
 
     rows = []
-    with open(pairs_file, 'rU') as f:
+    with open(pairs_file, 'r') as f:
         reader = csv.reader(f, dialect='excel', delimiter='\t')
-        heads = reader.next()
+        heads = next(reader)
         for line in reader:
             rows.append(line)
 
@@ -59,11 +69,11 @@ def write_output_files(lda_dictionary, pairs_file, output_name_prefix, metadata,
     # find the top X motifs for each component
     topX = {c: [] for c in component_to_motif}
     for c, motifs in component_to_motif.items():
-        mco = zip(motifs.keys(), motifs.values())
+        mco = list(zip(motifs.keys(), motifs.values()))
         if len(mco) > 0:
             mco.sort(key=lambda x: x[1], reverse=True)
             n = max(X, len(mco))
-            m, _ = zip(*mco)
+            m, _ = list(zip(*mco))
             topX[c] = m[:n]
 
     # write the new pairs file
@@ -103,7 +113,7 @@ def write_output_files(lda_dictionary, pairs_file, output_name_prefix, metadata,
                             writer.writerow(new_row)
 
     # write a nodes file
-    all_motifs = lda_dictionary['beta'].keys()
+    all_motifs = list(lda_dictionary['beta'].keys())
     all_docs = lda_dictionary['theta'].keys()
     nodes_file = output_name_prefix + '_ms2lda_nodes.tsv'
     no_edge = 0
@@ -129,7 +139,7 @@ def write_output_files(lda_dictionary, pairs_file, output_name_prefix, metadata,
             heads += motifs_with_links
         else:
             heads += all_motifs
-        writer.writerow([s.encode('utf-8') for s in heads])
+        writer.writerow(heads)
         for doc in all_docs:
             try:
                 motifs = list(doc_to_motif[doc])

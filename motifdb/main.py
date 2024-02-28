@@ -3,9 +3,13 @@ import os
 
 import numpy as np
 import requests
+import urllib3
+import certifi
 
 from ms2lda.constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
 
+
+http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
 def acquire_motifdb(db_list, filter_threshold=0.95):
     data = {}
@@ -25,7 +29,9 @@ def acquire_motifdb(db_list, filter_threshold=0.95):
 
 
 def get_motifset_list():
-    output = requests.get(MOTIFDB_SERVER_URL + 'list_motifsets')
+
+    url = MOTIFDB_SERVER_URL + 'list_motifsets'
+    output = http.request("GET",url)
     motifset_list = output.json()
     return motifset_list
 
@@ -53,8 +59,9 @@ def post_motifsets(motifsets, filter_threshold=0.95):
 
 
 def get_motifset_metadata(motif_id):
+
     url = MOTIFDB_SERVER_URL + 'get_motifset_metadata/{}/'.format(motif_id)
-    output = requests.get(url)
+    output = http.request("GET",url)
     motif_metadata = output.json()
     return motif_metadata
 
@@ -122,10 +129,10 @@ class MotifFilter(object):
 
     def filter(self):
         # Greedy filtering
-        # Loops through the spectra and for each one computes its similarity with 
+        # Loops through the spectra and for each one computes its similarity with
         # the remaining. Any that exceed the threshold are merged
-        # Merging invovles the latter one and puts it into the metadata of the 
-        # original so we can always check back. 
+        # Merging invovles the latter one and puts it into the metadata of the
+        # original so we can always check back.
         spec_names = sorted(self.input_metadata.keys())
         final_spec_list = []
         while len(spec_names) > 0:
