@@ -17,7 +17,7 @@ def acquire_motifdb(db_list, filter_threshold=0.95):
     data['filter'] = 'True'
     data['filter_threshold'] = filter_threshold
 
-    output = requests.post(MOTIFDB_SERVER_URL + 'get_motifset/', data=data, verify=False).json()
+    output = requests.post(MOTIFDB_SERVER_URL + 'get_motifset/', data=data, verify=certifi.where()).json()
     motifdb_spectra = output['motifs']
     motifdb_metadata = output['metadata']
     motifdb_features = set()
