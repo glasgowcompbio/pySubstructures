@@ -2,6 +2,10 @@ import gzip
 import os
 import pathlib
 import pickle
+import requests
+from zipfile import ZipFile
+from io import BytesIO
+from tqdm import tqdm
 
 from loguru import logger
 
@@ -69,3 +73,31 @@ def load_obj(filename):
         logger.warning(
             'Old, invalid or missing pickle in %s. Please regenerate this file.' % filename)
         return None
+
+
+
+def download_example_data():
+    # Check if the data already exists
+    expected_file = 'example_data/Beer_multibeers_1_T10_POS.mzML'  # Adjust as necessary for your data
+    if os.path.exists(expected_file):
+        logger.info(f"Data file {expected_file} already exists. Skipping download.")
+        return
+
+    # Proceed with download if the data does not exist
+    url = "https://github.com/glasgowcompbio/vimms-data/raw/main/example_data.zip"
+    response = requests.get(url, stream=True)
+    total_size = int(response.headers.get('content-length', 0))
+    block_size = 1024
+
+    logger.info("Downloading example data.")
+    t = tqdm(total=total_size, unit='iB', unit_scale=True)
+    with BytesIO() as zip_file:
+        for data in response.iter_content(block_size):
+            t.update(len(data))
+            zip_file.write(data)
+        t.close()
+
+        zip_file.seek(0)
+        with ZipFile(zip_file) as z:
+            z.extractall(".")
+    logger.info("Download and extraction complete.")
