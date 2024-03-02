@@ -6,10 +6,10 @@ import requests
 import urllib3
 import certifi
 
-from ms2lda.constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
-
+from pySubstructures.motifdb.constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
 
 http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+
 
 def acquire_motifdb(db_list, filter_threshold=0.95):
     data = {}
@@ -29,9 +29,8 @@ def acquire_motifdb(db_list, filter_threshold=0.95):
 
 
 def get_motifset_list():
-
     url = MOTIFDB_SERVER_URL + 'list_motifsets'
-    output = http.request("GET",url)
+    output = http.request("GET", url)
     motifset_list = output.json()
     return motifset_list
 
@@ -59,9 +58,8 @@ def post_motifsets(motifsets, filter_threshold=0.95):
 
 
 def get_motifset_metadata(motif_id):
-
     url = MOTIFDB_SERVER_URL + 'get_motifset_metadata/{}/'.format(motif_id)
-    output = http.request("GET",url)
+    output = http.request("GET", url)
     motif_metadata = output.json()
     return motif_metadata
 

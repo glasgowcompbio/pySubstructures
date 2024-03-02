@@ -13,9 +13,9 @@ from loguru import logger
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-from ms2lda.loaders import LoadMGF, LoadMSP, LoadMZML
-from ms2lda.feature_maker import MakeBinnedFeatures
-from ms2lda.lda_variational import VariationalLDA
+from pySubstructures.ms2lda.loaders import LoadMGF, LoadMSP, LoadMZML
+from pySubstructures.ms2lda.feature_maker import MakeBinnedFeatures
+from pySubstructures.ms2lda.lda_variational import VariationalLDA
 from gensim.models.ldamulticore import LdaMulticore
 from gensim.models.ldamodel import LdaModel
 

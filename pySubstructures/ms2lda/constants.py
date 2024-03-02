@@ -2,7 +2,6 @@ SMALL_NUMBER = 1e-100
 PROTON_MASS = 1.00727645199076
 
 MS2LDA_SERVER_URL = 'https://ms2lda.org/'
-MOTIFDB_SERVER_URL = MS2LDA_SERVER_URL + 'motifdb/'
 
 FILE_FORMAT_MGF = 'mgf'
 FILE_FORMAT_MSP = 'msp'
@@ -21,5 +20,3 @@ BIN_WIDTHS = {
     FEATURE_SET_BINNED_1: 0.1,
     FEATURE_SET_BINNED_5: 0.5
 }
-
-METADATA_FIELDS = ['comment', 'name', 'annotation', 'short_annotation']

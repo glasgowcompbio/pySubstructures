@@ -8,12 +8,12 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
 
-from motifdb.main import acquire_motifdb, FeatureMatcher
-from ms2lda.feature_maker import MakeBinnedFeatures
-from ms2lda.lda_variational import VariationalLDA
-from ms2lda.loaders import LoadMGF
-from ms2lda.reporting import write_topic_report, write_motifs_in_scans
-from ms2lda.constants import MOTIFDB_SERVER_URL
+from pySubstructures.motifdb.main import acquire_motifdb, FeatureMatcher
+from pySubstructures.ms2lda.feature_maker import MakeBinnedFeatures
+from pySubstructures.ms2lda.lda_variational import VariationalLDA
+from pySubstructures.ms2lda.loaders import LoadMGF
+from pySubstructures.ms2lda.reporting import write_topic_report, write_motifs_in_scans
+from pySubstructures.motifdb.constants import MOTIFDB_SERVER_URL
 
 
 # Restore sys.path to its original state if needed
@@ -182,7 +182,7 @@ vlda.run_vb(initialise=True, n_its=input_iterations)
 vd = vlda.make_dictionary(
     features=features, metadata=metadata, filename=output_prefix + '.dict')
 
-from ms2lda.molnet_integration import write_output_files
+from pySubstructures.ms2lda.molnet_integration import write_output_files
 
 write_output_files(vd, pairs_file, output_prefix, metadata,
                    overlap_thresh=args.input_network_overlap, p_thresh=args.input_network_pvalue,

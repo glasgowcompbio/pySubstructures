@@ -6,8 +6,8 @@ from scipy.special import polygamma as pg
 from scipy.special import psi as psi
 from tqdm import trange
 
-from ms2lda.constants import SMALL_NUMBER
-from ms2lda.lda_evaluation import compute_overlap_scores_from_dict
+from pySubstructures.ms2lda.constants import SMALL_NUMBER
+from pySubstructures.ms2lda.lda_evaluation import compute_overlap_scores_from_dict
 
 
 class VariationalLDA(object):

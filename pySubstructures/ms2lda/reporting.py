@@ -266,7 +266,7 @@ def write_topic_report(lda_dictionary, filename, backend='agg'):
             textPage = plt.figure(figsize=(20, 10))
             textPage.clf()
             topic_probs = list(zip(lda_dictionary['beta'][topic].keys(),
-                              lda_dictionary['beta'][topic].values()))
+                                   lda_dictionary['beta'][topic].values()))
             topic_probs.sort(key=lambda x: x[1], reverse=True)
             col = 0
             n_rows = 20

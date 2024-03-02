@@ -13,8 +13,8 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
 # Assuming these imports are necessary for your context
-from motifdb.main import acquire_motifdb
-from ms2lda.constants import MOTIFDB_SERVER_URL
+from pySubstructures.motifdb.main import acquire_motifdb
+from pySubstructures.motifdb.constants import MOTIFDB_SERVER_URL
 
 # Restore sys.path to its original state if needed
 sys.path.remove(parent_dir)

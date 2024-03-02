@@ -3,11 +3,11 @@ import os
 
 from loguru import logger
 
-from ms2lda.common import create_if_not_exist
-from ms2lda.constants import FILE_FORMAT_MZML, FILE_FORMAT_MSP, FILE_FORMAT_MGF, BIN_WIDTHS
-from ms2lda.feature_maker import MakeBinnedFeatures
-from ms2lda.lda_variational import VariationalLDA
-from ms2lda.loaders import LoadMZML, LoadMSP, LoadMGF
+from pySubstructures.ms2lda.common import create_if_not_exist
+from pySubstructures.ms2lda.constants import FILE_FORMAT_MZML, FILE_FORMAT_MSP, FILE_FORMAT_MGF, BIN_WIDTHS
+from pySubstructures.ms2lda.feature_maker import MakeBinnedFeatures
+from pySubstructures.ms2lda.lda_variational import VariationalLDA
+from pySubstructures.ms2lda.loaders import LoadMZML, LoadMSP, LoadMGF
 
 
 class MS2LDAFeatureExtractor(object):

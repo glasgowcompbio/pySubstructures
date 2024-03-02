@@ -9,7 +9,7 @@ import requests
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-from ms2lda.constants import MS2LDA_SERVER_URL
+from pySubstructures.ms2lda.constants import MS2LDA_SERVER_URL
 
 # Restore sys.path to its original state if needed
 sys.path.remove(parent_dir)

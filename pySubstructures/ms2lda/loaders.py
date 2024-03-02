@@ -4,8 +4,8 @@ import re
 import numpy as np
 from loguru import logger
 
-from ms2lda.common import MS1
-from ms2lda.constants import PROTON_MASS
+from pySubstructures.ms2lda.common import MS1
+from pySubstructures.ms2lda.constants import PROTON_MASS
 
 
 class Loader(object):
@@ -97,7 +97,7 @@ class Loader(object):
             ## remove trailing minus signs
             if charge.endswith('-'):
                 charge = charge[:-1]
-                # move the minus to the front if it 
+                # move the minus to the front if it
                 # isn't already there
                 if not charge.startswith('-'):
                     charge = '-' + charge

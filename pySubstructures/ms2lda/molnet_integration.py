@@ -4,15 +4,15 @@ import sys
 
 import networkx as nx
 import pandas as pd
+
 # Modify sys.path to include the parent directory
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
-from ms2lda.molnetenhancer import Mass2Motif_2_Network, make_motif_graphml
+from pySubstructures.ms2lda.molnetenhancer import Mass2Motif_2_Network, make_motif_graphml
 
 # Restore sys.path to its original state if needed
 sys.path.remove(parent_dir)
-
 
 
 def write_output_files(lda_dictionary, pairs_file, output_name_prefix, metadata,
