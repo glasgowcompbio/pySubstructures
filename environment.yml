@@ -19,6 +19,7 @@ dependencies:
   - gensim
   - pip
   - tqdm
+  - pytest
   - pip:
     - pymzml==2.4.7
     - mass-spec-utils
