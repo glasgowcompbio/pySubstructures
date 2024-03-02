@@ -4,6 +4,7 @@ import requests
 import sys
 
 from loguru import logger
+import pandas as pd
 
 import certifi
 
@@ -23,33 +24,27 @@ def save_motifs(motifdb_spectra, motifdb_metadata, output_dir):
         file_path = os.path.join(output_dir, motif_name)
         with open(file_path, 'w') as f:
             f.write("#NAME {}\n".format(motifdb_metadata[motif_name]['name']))
-            f.write(
-                "#ANNOTATION {}\n".format(motifdb_metadata[motif_name].get('annotation', 'No annotation available')))
-            f.write("#SHORT_ANNOTATION {}\n".format(
-                motifdb_metadata[motif_name].get('short_annotation', 'No short annotation available')))
+            f.write("#ANNOTATION {}\n".format(motifdb_metadata[motif_name].get('annotation', 'No annotation available')))
+            f.write("#SHORT_ANNOTATION {}\n".format(motifdb_metadata[motif_name].get('short_annotation', 'No short annotation available')))
             f.write("#COMMENT {}\n".format(motifdb_metadata[motif_name].get('comment', 'No comment available')))
 
-            # Sort the fragments by value in descending order
             sorted_spectra = sorted(spectra.items(), key=lambda x: x[1], reverse=True)
 
             for fragment, intensity in sorted_spectra:
                 f.write("{},{}\n".format(fragment, intensity))
 
-
 def download_motifset(base_dir):
-    # Fetch the list of motif sets
     motifset_dict = requests.get(MOTIFDB_SERVER_URL + 'list_motifsets/', verify=certifi.where()).json()
     motifset_rev_dict = {value: key for key, value in motifset_dict.items()}
 
-    # Whitelist of motif set IDs to include, mapping to their respective sources:
-    # 1: Urine derived, 2: GNPS library, 3: Euphorbia Plant, 4: Massbank library,
-    # 5: Rhamnaceae Plant, 6: Streptomyces and Salinispora, 16: Photorhabdus and Xenorhabdus
-    whitelist_ids = [1, 2, 3, 4, 5, 6, 16]
+    # Define whitelist here
+    # whitelist_ids = None
+    whitelist_ids = [1, 2, 3, 4, 5, 6, 16, 17, 33, 37, 32, 31, 30, 29, 38]
 
-    # Convert the motif names to their IDs and filter by whitelist
-    db_list = [id for id in list(motifset_dict.values()) if id in whitelist_ids]
+    db_list = [motif_id for motif_id in motifset_dict.values() if not whitelist_ids or motif_id in whitelist_ids]
 
-    # For each motif set ID, acquire and save the data
+    motif_data = []
+
     for motif_id in db_list:
         motifdb_spectra, motifdb_metadata, _ = acquire_motifdb([motif_id], filter_threshold=0.95)
         motifset_name = motifset_rev_dict[motif_id]
@@ -59,6 +54,12 @@ def download_motifset(base_dir):
         os.makedirs(output_dir, exist_ok=True)
         save_motifs(motifdb_spectra, motifdb_metadata, output_dir)
 
+        motif_data.append((motif_id, motifset_name, len(motifdb_spectra)))
+
+    # Create DataFrame and set Motif ID as the index
+    df = pd.DataFrame(motif_data, columns=['Motif ID', 'Motif Set', 'Number of Motifs']).set_index('Motif ID')
+    df = df.sort_values(by='Number of Motifs', ascending=False)
+    return df
 
 def main():
     parser = argparse.ArgumentParser(description='Download all motif sets from MS2LDA and save them to files.')
@@ -67,13 +68,13 @@ def main():
 
     args = parser.parse_args()
 
-    # Ensure the base directory is absolute and exists
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', args.base_dir))
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', args.base_dir))
     os.makedirs(base_dir, exist_ok=True)
 
-    download_motifset(base_dir)
-    logger.info(f"Downloaded and saved all motif sets to '{base_dir}'.")
+    df = download_motifset(base_dir)
+    print(df)
 
+    logger.info(f"Downloaded and saved all motif sets to '{base_dir}'. See the motif set report above.")
 
 if __name__ == '__main__':
     main()
