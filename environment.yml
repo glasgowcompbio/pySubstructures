@@ -1,26 +1,24 @@
 name: pySubstructures
 channels:
-  - conda-forge
   - defaults
+  - conda-forge
 dependencies:
-  - numpy
-  - scipy
-  - pandas
-  - pyarrow
-  - seaborn
-  - scikit-learn
-  - matplotlib
-  - plotly
-  - loguru
-  - jupyterlab
-  - ipywidgets
-  - tqdm
-  - networkx
-  - gensim
+  - python>=3.9
+  - ipython>=8
+  - jupyterlab>=4.0
+  - numpy<=1.24.3
+  - scikit-learn>=1.3.0
+  - scipy>=1.11
+  - gensim>=4.3.2
+  - tqdm>=4.65.0
+  - seaborn>=0.12
+  - matplotlib>=3.7
+  - networkx>=3.1
+  - pytest>=7.1.2
+  - coverage>=7.2.2
   - pip
-  - tqdm
-  - pytest
   - pip:
-    - pymzml==2.4.7
+    - loguru>=0.7.2
+    - pymzml>=2.5.6
     - mass-spec-utils
     - pyMolNetEnhancer
