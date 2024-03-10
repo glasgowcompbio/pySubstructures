@@ -19,7 +19,7 @@ class MakeRawFeatures(MakeFeatures):
     """
 
     def __str__(self):
-        return 'Raw feature maker'
+        return "Raw feature maker"
 
     def make_features(self, ms2):
         self.word_mz_range = {}
@@ -37,7 +37,7 @@ class MakeRawFeatures(MakeFeatures):
             if not doc_name in self.corpus[file_name]:
                 self.corpus[file_name][doc_name] = {}
 
-            feature_name = 'fragment_{}'.format(frag_mz)
+            feature_name = "fragment_{}".format(frag_mz)
             self.corpus[file_name][doc_name][feature_name] = frag_intensity
             self.word_mz_range[feature_name] = (frag_mz, frag_mz)
 
@@ -52,9 +52,16 @@ class MakeBinnedFeatures(MakeFeatures):
     def __str__(self):
         return "Binning feature creator with bin_width = {}".format(self.bin_width)
 
-    def __init__(self, min_frag=0.0, max_frag=1000.0,
-                 min_loss=10.0, max_loss=200.0,
-                 min_intensity=0.0, min_intensity_perc=0.0, bin_width=0.005):
+    def __init__(
+        self,
+        min_frag=0.0,
+        max_frag=1000.0,
+        min_loss=10.0,
+        max_loss=200.0,
+        min_intensity=0.0,
+        min_intensity_perc=0.0,
+        bin_width=0.005,
+    ):
         self.min_frag = min_frag
         self.max_frag = max_frag
         self.min_loss = min_loss
@@ -70,8 +77,8 @@ class MakeBinnedFeatures(MakeFeatures):
         self.loss_words = []
         self.corpus = {}
 
-        self._make_words(self.min_loss, self.max_loss, self.loss_words, 'loss')
-        self._make_words(self.min_frag, self.max_frag, self.fragment_words, 'fragment')
+        self._make_words(self.min_loss, self.max_loss, self.loss_words, "loss")
+        self._make_words(self.min_frag, self.max_frag, self.fragment_words, "fragment")
 
         for word in self.fragment_words:
             self.word_counts[word] = 0
@@ -83,7 +90,6 @@ class MakeBinnedFeatures(MakeFeatures):
         loss_lower = [self.word_mz_range[word][0] for word in self.loss_words]
 
         for peak in ms2:
-
             # MS2 objects are ((mz,rt,intensity,parent,file_name,id))
             # TODO: make the search more efficients
             mz = peak[0]
@@ -139,7 +145,9 @@ class MakeBinnedFeatures(MakeFeatures):
             n_docs += len(self.corpus[c])
 
         logger.info("{} documents".format(n_docs))
-        logger.info("After removing empty words, {} words left".format(len(self.word_mz_range)))
+        logger.info(
+            "After removing empty words, {} words left".format(len(self.word_mz_range))
+        )
 
         if self.min_intensity_perc > 0:
             # Remove words that are smaller than a certain percentage of the highest feature
@@ -165,8 +173,11 @@ class MakeBinnedFeatures(MakeFeatures):
                     to_remove.append(word)
             for word in to_remove:
                 del self.word_mz_range[word]
-            logger.info("After applying min_intensity_perc filter, {} words left".format(
-                len(self.word_mz_range)))
+            logger.info(
+                "After applying min_intensity_perc filter, {} words left".format(
+                    len(self.word_mz_range)
+                )
+            )
 
         return self.corpus, self.word_mz_range
 
@@ -177,7 +188,7 @@ class MakeBinnedFeatures(MakeFeatures):
         while min_word < max_mz:
             up_edge = min(max_mz, max_word)
             word_mean = 0.5 * (min_word + up_edge)
-            new_word = '{}_{:.4f}'.format(prefix, word_mean)  # 4dp
+            new_word = "{}_{:.4f}".format(prefix, word_mean)  # 4dp
             word_list.append(new_word)
             self.word_mz_range[new_word] = (min_word, up_edge)
             min_word += self.bin_width
@@ -192,9 +203,15 @@ class MakeNominalFeatures(MakeFeatures):
     def __str__(self):
         return "Nominal feature extractor, bin_width = {}".format(self.bin_width)
 
-    def __init__(self, min_frag=0.0, max_frag=10000.0,
-                 min_loss=10.0, max_loss=200.0,
-                 min_intensity=0.0, bin_width=0.3):
+    def __init__(
+        self,
+        min_frag=0.0,
+        max_frag=10000.0,
+        min_loss=10.0,
+        max_loss=200.0,
+        min_intensity=0.0,
+        bin_width=0.3,
+    ):
         self.min_frag = min_frag
         self.max_frag = max_frag
         self.min_loss = min_loss
@@ -221,23 +238,31 @@ class MakeNominalFeatures(MakeFeatures):
                     err = abs(frag_mass - frag_word)
                     if err <= self.bin_width:
                         # Keep it
-                        word_name = 'fragment_' + str(frag_word)
+                        word_name = "fragment_" + str(frag_word)
                         if not word_name in word_names:
                             word_names.append(word_name)
                             word_mz_range[word_name] = (
-                                frag_word - self.bin_width, frag_word + self.bin_width)
-                        self._add_word_to_corpus(word_name, file_name, doc_name, intensity)
+                                frag_word - self.bin_width,
+                                frag_word + self.bin_width,
+                            )
+                        self._add_word_to_corpus(
+                            word_name, file_name, doc_name, intensity
+                        )
 
                 if loss_mass >= self.min_loss and loss_mass <= self.max_loss:
                     loss_word = round(loss_mass)
                     err = abs(loss_mass - loss_word)
                     if err <= self.bin_width:
-                        word_name = 'loss_' + str(loss_word)
+                        word_name = "loss_" + str(loss_word)
                         if not word_name in word_names:
                             word_names.append(word_name)
                             word_mz_range[word_name] = (
-                                loss_word - self.bin_width, loss_word + self.bin_width)
-                        self._add_word_to_corpus(word_name, file_name, doc_name, intensity)
+                                loss_word - self.bin_width,
+                                loss_word + self.bin_width,
+                            )
+                        self._add_word_to_corpus(
+                            word_name, file_name, doc_name, intensity
+                        )
 
         return self.corpus, word_mz_range
 

@@ -4,7 +4,12 @@ import os
 from loguru import logger
 
 from pySubstructures.ms2lda.common import create_if_not_exist
-from pySubstructures.ms2lda.constants import FILE_FORMAT_MZML, FILE_FORMAT_MSP, FILE_FORMAT_MGF, BIN_WIDTHS
+from pySubstructures.ms2lda.constants import (
+    FILE_FORMAT_MZML,
+    FILE_FORMAT_MSP,
+    FILE_FORMAT_MGF,
+    BIN_WIDTHS,
+)
 from pySubstructures.ms2lda.feature_maker import MakeBinnedFeatures
 from pySubstructures.ms2lda.lda_variational import VariationalLDA
 from pySubstructures.ms2lda.loaders import LoadMZML, LoadMSP, LoadMGF
@@ -31,41 +36,56 @@ class MS2LDAFeatureExtractor(object):
         return self.corpus[first_file_name]
 
 
-def msfile_to_corpus(ms2_file, ms2_format, min_ms1_intensity, min_ms2_intensity, mz_tol, rt_tol,
-                     feature_set_name, K,
-                     corpus_json=None):
+def msfile_to_corpus(
+    ms2_file,
+    ms2_format,
+    min_ms1_intensity,
+    min_ms2_intensity,
+    mz_tol,
+    rt_tol,
+    feature_set_name,
+    K,
+    corpus_json=None,
+):
     if ms2_format == FILE_FORMAT_MZML:
-        loader = LoadMZML(mz_tol=mz_tol,
-                          rt_tol=rt_tol, peaklist=None,
-                          min_ms1_intensity=min_ms1_intensity,
-                          min_ms2_intensity=min_ms2_intensity)
+        loader = LoadMZML(
+            mz_tol=mz_tol,
+            rt_tol=rt_tol,
+            peaklist=None,
+            min_ms1_intensity=min_ms1_intensity,
+            min_ms2_intensity=min_ms2_intensity,
+        )
     elif ms2_format == FILE_FORMAT_MSP:
-        loader = LoadMSP(min_ms1_intensity=min_ms1_intensity,
-                         min_ms2_intensity=min_ms2_intensity,
-                         mz_tol=mz_tol,
-                         rt_tol=rt_tol,
-                         peaklist=None,
-                         name_field="")
+        loader = LoadMSP(
+            min_ms1_intensity=min_ms1_intensity,
+            min_ms2_intensity=min_ms2_intensity,
+            mz_tol=mz_tol,
+            rt_tol=rt_tol,
+            peaklist=None,
+            name_field="",
+        )
     elif ms2_format == FILE_FORMAT_MGF:
-        loader = LoadMGF(min_ms1_intensity=min_ms1_intensity,
-                         min_ms2_intensity=min_ms2_intensity,
-                         mz_tol=mz_tol,
-                         rt_tol=rt_tol,
-                         peaklist=None,
-                         name_field="")
+        loader = LoadMGF(
+            min_ms1_intensity=min_ms1_intensity,
+            min_ms2_intensity=min_ms2_intensity,
+            mz_tol=mz_tol,
+            rt_tol=rt_tol,
+            peaklist=None,
+            name_field="",
+        )
     else:
-        raise NotImplementedError('Unknown ms2 format')
+        raise NotImplementedError("Unknown ms2 format")
 
-    logger.info('Loading %s using %s' % (ms2_file, loader))
+    logger.info("Loading %s using %s" % (ms2_file, loader))
     ms1, ms2, metadata = loader.load_spectra([ms2_file])
 
     if feature_set_name not in BIN_WIDTHS:
-        raise NotImplementedError('Unsupported bin width')
+        raise NotImplementedError("Unsupported bin width")
     bin_width = BIN_WIDTHS[feature_set_name]
-    logger.info('bin_width = %f' % bin_width)
+    logger.info("bin_width = %f" % bin_width)
 
     fm = MakeBinnedFeatures(bin_width=bin_width)
-    logger.info('Using %s to make features' % fm)
+    logger.info("Using %s to make features" % fm)
     corpus, features = fm.make_features(ms2)
     first_key = list(corpus.keys())[0]
     corpus = corpus[first_key]
@@ -75,23 +95,23 @@ def msfile_to_corpus(ms2_file, ms2_format, min_ms1_intensity, min_ms2_intensity,
     # out from the `VariationalLDA` class.
     vlda = VariationalLDA(corpus=corpus, K=K)
     lda_dict = {
-        'corpus': corpus,
-        'word_index': vlda.word_index,
-        'doc_index': vlda.doc_index,
-        'doc_metadata': metadata,
-        'topic_index': vlda.topic_index,
-        'topic_metadata': vlda.topic_metadata,
-        'features': features
+        "corpus": corpus,
+        "word_index": vlda.word_index,
+        "doc_index": vlda.doc_index,
+        "doc_metadata": metadata,
+        "topic_index": vlda.topic_index,
+        "topic_metadata": vlda.topic_metadata,
+        "features": features,
     }
 
     if corpus_json is not None:
-        logger.info('Saving lda_dict to %s' % corpus_json)
+        logger.info("Saving lda_dict to %s" % corpus_json)
 
         # if directory doesn't exist, create it
         dirname = os.path.dirname(os.path.abspath(corpus_json))
         create_if_not_exist(dirname)
 
-        with open(corpus_json, 'w') as f:
+        with open(corpus_json, "w") as f:
             json.dump(lda_dict, f)
 
     return lda_dict

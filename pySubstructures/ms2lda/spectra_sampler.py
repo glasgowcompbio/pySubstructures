@@ -14,7 +14,7 @@ class SpectraSampler(object):
     def compute_MS1_dist(self):
         self.ms1_masses = []
         for doc in self.vlda.corpus:
-            mass = float(doc.split('_')[0])
+            mass = float(doc.split("_")[0])
             self.ms1_masses.append(mass)
 
         self.ms1_mass_mean = np.array(self.ms1_masses).mean()
@@ -38,7 +38,7 @@ class SpectraSampler(object):
         beta_copy = self.vlda.beta_matrix.copy()
         if not include_losses:
             for word in self.vlda.word_index:
-                if word.startswith('loss'):
+                if word.startswith("loss"):
                     pos = self.vlda.word_index[word]
                     beta_copy[:, pos] = 0
             beta_copy /= beta_copy.sum(axis=1)[:, None]
@@ -47,14 +47,16 @@ class SpectraSampler(object):
             n_words = self.wcounts[np.random.choice(len(self.vlda.corpus))]
             logger.info("Generating {} words".format(n_words))
             theta = np.random.dirichlet(self.vlda.alpha)
-            s_theta = zip(theta, ['topic_{}'.format(i) for i in range(len(theta))])
+            s_theta = zip(theta, ["topic_{}".format(i) for i in range(len(theta))])
             s_theta = sorted(s_theta, key=lambda x: x[0], reverse=True)
             print(s_theta[:10])
             for word in range(n_words):
                 # Select a topic
                 topic = np.random.choice(self.K, p=theta)
                 # Select a word
-                word_pos = np.random.choice(self.vocab_size, p=self.vlda.beta_matrix[topic, :])
+                word_pos = np.random.choice(
+                    self.vocab_size, p=self.vlda.beta_matrix[topic, :]
+                )
                 word = self.reverse_word_index[word_pos]
                 if not word in new_spectrum:
                     new_spectrum[word] = 1

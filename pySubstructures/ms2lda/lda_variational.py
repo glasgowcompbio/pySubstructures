@@ -15,9 +15,19 @@ class VariationalLDA(object):
     Variational LDA implementation
     """
 
-    def __init__(self, corpus=None, K=20, eta=0.1,
-                 alpha=1, update_alpha=True, word_index=None, normalise=-1, fixed_topics=None,
-                 fixed_topics_metadata=None, topic_index=None):
+    def __init__(
+        self,
+        corpus=None,
+        K=20,
+        eta=0.1,
+        alpha=1,
+        update_alpha=True,
+        word_index=None,
+        normalise=-1,
+        fixed_topics=None,
+        fixed_topics_metadata=None,
+        topic_index=None,
+    ):
         """
         :param corpus: the corpus
         :param K: number of topics
@@ -73,13 +83,13 @@ class VariationalLDA(object):
                 for topic_name in fixed_topics:
                     self.topic_index[topic_name] = topic_pos
                     self.topic_metadata[topic_name] = fixed_topics_metadata[topic_name]
-                    self.topic_metadata[topic_name]['type'] = 'fixed'
+                    self.topic_metadata[topic_name]["type"] = "fixed"
                     topic_pos += 1
 
             for topic_pos in range(self.n_fixed_topics, self.K):
-                topic_name = 'motif_{}'.format(topic_pos)
+                topic_name = "motif_{}".format(topic_pos)
                 self.topic_index[topic_name] = topic_pos
-                self.topic_metadata[topic_name] = {'name': topic_name, 'type': 'learnt'}
+                self.topic_metadata[topic_name] = {"name": topic_name, "type": "learnt"}
 
         if fixed_topics:
             self._add_exact_fixed_topics(fixed_topics)
@@ -115,7 +125,9 @@ class VariationalLDA(object):
                 if self.corpus[doc][word] > max_i:
                     max_i = self.corpus[doc][word]
             for word in self.corpus[doc]:
-                self.corpus[doc][word] = int(self.normalise * self.corpus[doc][word] / max_i)
+                self.corpus[doc][word] = int(
+                    self.normalise * self.corpus[doc][word] / max_i
+                )
 
     def run_vb(self, n_its=1, initialise=True):
         """
@@ -128,7 +140,7 @@ class VariationalLDA(object):
         if initialise:
             self.init_vb()
 
-        pbar = trange(n_its, desc='diff', leave=True)
+        pbar = trange(n_its, desc="diff", leave=True)
         for it in pbar:
             diff = self.vb_step()
             pbar.set_description("diff=%.6f" % (diff))
@@ -145,7 +157,9 @@ class VariationalLDA(object):
 
         # Do the normalisation in the m step
         if self.n_fixed_topics > 0:
-            temp_beta[:self.n_fixed_topics, :] = self.beta_matrix[:self.n_fixed_topics, :]
+            temp_beta[: self.n_fixed_topics, :] = self.beta_matrix[
+                : self.n_fixed_topics, :
+            ]
         temp_beta /= temp_beta.sum(axis=1)[:, None]
 
         # Compute how much the word probabilities have changed
@@ -172,8 +186,9 @@ class VariationalLDA(object):
                 init_alpha = self.gamma_matrix.mean(axis=0) / K
             alpha = init_alpha.copy()
             alphap = init_alpha.copy()
-            g_term = (psi(self.gamma_matrix) - psi(self.gamma_matrix.sum(axis=1))[:, None]).sum(
-                axis=0)
+            g_term = (
+                psi(self.gamma_matrix) - psi(self.gamma_matrix.sum(axis=1))[:, None]
+            ).sum(axis=0)
             for it in range(maxit):
                 grad = M * (psi(alpha.sum()) - psi(alpha)) + g_term
                 H = -M * np.diag(pg(1, alpha)) + M * pg(1, alpha.sum())
@@ -218,7 +233,9 @@ class VariationalLDA(object):
             temp_gamma = np.zeros(self.K) + self.alpha
             for word in self.corpus[doc]:
                 w = self.word_index[word]
-                log_phi_matrix = np.log(self.beta_matrix[:, w]) + psi(self.gamma_matrix[d, :]).T
+                log_phi_matrix = (
+                    np.log(self.beta_matrix[:, w]) + psi(self.gamma_matrix[d, :]).T
+                )
                 # self.phi_matrix[doc][word] = self.beta_matrix[:,w]*np.exp(psi(self.gamma_matrix[d,:])).T
                 # for k in range(self.K):
                 #   self.phi_matrix[doc][word][k] = self.beta_matrix[k,w]*np.exp(scipy.special.psi(self.gamma_matrix[d,k]))
@@ -288,10 +305,14 @@ class VariationalLDA(object):
             # self.beta_matrix = np.random.rand(self.K,self.n_words)
             self.beta_matrix = np.zeros((self.K, self.n_words), np.double)
             for k in range(self.K):
-                self.beta_matrix[k, :] = np.random.dirichlet(self.eta * np.ones(self.n_words))
+                self.beta_matrix[k, :] = np.random.dirichlet(
+                    self.eta * np.ones(self.n_words)
+                )
         else:
             for k in range(self.n_fixed_topics, self.K):
-                self.beta_matrix[k, :] = np.random.dirichlet(self.eta * np.ones(self.n_words))
+                self.beta_matrix[k, :] = np.random.dirichlet(
+                    self.eta * np.ones(self.n_words)
+                )
         self.beta_matrix /= self.beta_matrix.sum(axis=1)[:, None]
 
     def get_topic_as_doc_dict(self, topic_id, thresh=0.001, normalise=False):
@@ -343,9 +364,16 @@ class VariationalLDA(object):
         """
         return self.beta_matrix.copy()
 
-    def make_dictionary(self, metadata=None, min_prob_to_keep_beta=1e-3,
-                        min_prob_to_keep_phi=1e-2, min_prob_to_keep_theta=1e-2,
-                        filename=None, features=None, compute_overlaps=True):
+    def make_dictionary(
+        self,
+        metadata=None,
+        min_prob_to_keep_beta=1e-3,
+        min_prob_to_keep_phi=1e-2,
+        min_prob_to_keep_theta=1e-2,
+        filename=None,
+        features=None,
+        compute_overlaps=True,
+    ):
         """
         Creates the output LDA dictionary that can be visualised elsewhere
         :param metadata:
@@ -362,29 +390,32 @@ class VariationalLDA(object):
             if self.doc_metadata == None:
                 metadata = {}
                 for doc in self.corpus:
-                    metadata[doc] = {'name': doc, 'parentmass': float(doc.split('_')[0])}
+                    metadata[doc] = {
+                        "name": doc,
+                        "parentmass": float(doc.split("_")[0]),
+                    }
             else:
                 metadata = self.doc_metadata
 
         lda_dict = {}
-        lda_dict['corpus'] = self.corpus
-        lda_dict['word_index'] = self.word_index
-        lda_dict['doc_index'] = self.doc_index
-        lda_dict['K'] = self.K
-        lda_dict['alpha'] = list(self.alpha)
-        lda_dict['beta'] = {}
-        lda_dict['doc_metadata'] = metadata
-        lda_dict['topic_index'] = self.topic_index
-        lda_dict['topic_metadata'] = self.topic_metadata
+        lda_dict["corpus"] = self.corpus
+        lda_dict["word_index"] = self.word_index
+        lda_dict["doc_index"] = self.doc_index
+        lda_dict["K"] = self.K
+        lda_dict["alpha"] = list(self.alpha)
+        lda_dict["beta"] = {}
+        lda_dict["doc_metadata"] = metadata
+        lda_dict["topic_index"] = self.topic_index
+        lda_dict["topic_metadata"] = self.topic_metadata
 
         pure_gamma = []
         for gamma in self.gamma_matrix:
             pure_gamma.append(list(gamma))
 
-        lda_dict['gamma'] = gamma
+        lda_dict["gamma"] = gamma
 
         if features:
-            lda_dict['features'] = features
+            lda_dict["features"] = features
 
         # Create the inverse indexes
         wi = []
@@ -411,42 +442,44 @@ class VariationalLDA(object):
             pos = np.where(self.beta_matrix[k, :] > min_prob_to_keep_beta)[0]
             motif_name = reverse[k]
             # motif_name = 'motif_{}'.format(k)
-            lda_dict['beta'][motif_name] = {}
+            lda_dict["beta"][motif_name] = {}
             for p in pos:
                 word_name = ri[p]
-                lda_dict['beta'][motif_name][word_name] = self.beta_matrix[k, p]
+                lda_dict["beta"][motif_name][word_name] = self.beta_matrix[k, p]
 
         eth = self.get_expect_theta()
-        lda_dict['theta'] = {}
+        lda_dict["theta"] = {}
         for i, t in enumerate(eth):
             doc = di[i]
-            lda_dict['theta'][doc] = {}
+            lda_dict["theta"][doc] = {}
             pos = np.where(t > min_prob_to_keep_theta)[0]
             for p in pos:
                 motif_name = reverse[p]
                 # motif_name = 'motif_{}'.format(p)
-                lda_dict['theta'][doc][motif_name] = t[p]
+                lda_dict["theta"][doc][motif_name] = t[p]
 
-        lda_dict['phi'] = {}
+        lda_dict["phi"] = {}
         ndocs = 0
         for doc in self.corpus:
             ndocs += 1
-            lda_dict['phi'][doc] = {}
+            lda_dict["phi"][doc] = {}
             for word in self.corpus[doc]:
-                lda_dict['phi'][doc][word] = {}
+                lda_dict["phi"][doc][word] = {}
                 pos = np.where(self.phi_matrix[doc][word] >= min_prob_to_keep_phi)[0]
                 for p in pos:
                     motif_name = reverse[p]
-                    lda_dict['phi'][doc][word][motif_name] = self.phi_matrix[doc][word][p]
+                    lda_dict["phi"][doc][word][motif_name] = self.phi_matrix[doc][word][
+                        p
+                    ]
             if ndocs % 500 == 0:
                 logger.info("Done {}".format(ndocs))
 
         if compute_overlaps:
             os = compute_overlap_scores_from_dict(lda_dict)
-            lda_dict['overlap_scores'] = os
+            lda_dict["overlap_scores"] = os
 
         if filename is not None:
-            with open(filename, 'wb') as f:
+            with open(filename, "wb") as f:
                 pickle.dump(lda_dict, f)
 
         return lda_dict

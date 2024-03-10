@@ -29,7 +29,7 @@ import requests
 import requests_cache
 
 pd.options.mode.chained_assignment = None
-requests_cache.install_cache('demo_cache')
+requests_cache.install_cache("demo_cache")
 
 
 def Mass2Motif_2_Network(edges, motifs, prob=0.01, overlap=0.3, top=5):
@@ -52,11 +52,11 @@ def Mass2Motif_2_Network(edges, motifs, prob=0.01, overlap=0.3, top=5):
     motifs = motifs[motifs.probability > prob]
     motifs = motifs[motifs.overlap > overlap]
 
-    if 'MEH' not in edges.columns and 'OtherScore' not in edges.columns:
-        edges['MEH'] = 0.0
-        edges['OtherScore'] = 0.0
+    if "MEH" not in edges.columns and "OtherScore" not in edges.columns:
+        edges["MEH"] = 0.0
+        edges["OtherScore"] = 0.0
 
-    motifs_con = motifs.groupby('scans').agg(lambda x: x.tolist())
+    motifs_con = motifs.groupby("scans").agg(lambda x: x.tolist())
     df = pd.DataFrame(0.0, index=motifs_con.index, columns=motifs.motif.unique())
 
     for index, row in motifs_con.iterrows():
@@ -65,52 +65,88 @@ def Mass2Motif_2_Network(edges, motifs, prob=0.01, overlap=0.3, top=5):
 
     comb = pd.merge(motifs_con, df, left_index=True, right_index=True)
 
-    edges['shared_motifs'] = 'None'
+    edges["shared_motifs"] = "None"
 
     for index, row in edges.iterrows():
-        if row['CLUSTERID1'] in motifs_con.index and row['CLUSTERID2'] in motifs_con.index:
-            edges['shared_motifs'].iloc[index] = list(
-                set(motifs_con.loc[row['CLUSTERID1'], 'motif']) & set(motifs_con.loc[row['CLUSTERID2'], 'motif']))
+        if (
+            row["CLUSTERID1"] in motifs_con.index
+            and row["CLUSTERID2"] in motifs_con.index
+        ):
+            edges["shared_motifs"].iloc[index] = list(
+                set(motifs_con.loc[row["CLUSTERID1"], "motif"])
+                & set(motifs_con.loc[row["CLUSTERID2"], "motif"])
+            )
 
     # calculate most shared motifs per molecular family
-    topmotifs = edges.groupby('ComponentIndex')['shared_motifs'].agg(lambda x: x.tolist()).to_frame(name='topmotifs')
+    topmotifs = (
+        edges.groupby("ComponentIndex")["shared_motifs"]
+        .agg(lambda x: x.tolist())
+        .to_frame(name="topmotifs")
+    )
 
     for index, row in topmotifs.iterrows():
-        if row['topmotifs'] != ['None']:
-            mcounts = list(filter(lambda a: a != 'None', row['topmotifs']))
-            topmotifs.loc[index, 'topmotifs'] = [x for sub_list in mcounts for x in sub_list]
+        if row["topmotifs"] != ["None"]:
+            mcounts = list(filter(lambda a: a != "None", row["topmotifs"]))
+            topmotifs.loc[index, "topmotifs"] = [
+                x for sub_list in mcounts for x in sub_list
+            ]
 
     for index, row in topmotifs.iterrows():
-        counts = collections.Counter(row['topmotifs'])
-        mcs = sorted(row['topmotifs'], key=counts.get, reverse=True)
-        row['topmotifs'] = list(OrderedDict.fromkeys(mcs))[0:top]
+        counts = collections.Counter(row["topmotifs"])
+        mcs = sorted(row["topmotifs"], key=counts.get, reverse=True)
+        row["topmotifs"] = list(OrderedDict.fromkeys(mcs))[0:top]
 
-    topmotifs['ComponentIndex'] = topmotifs.index
+    topmotifs["ComponentIndex"] = topmotifs.index
 
-    edges['TopSharedMotifs'] = edges['ComponentIndex'].map(topmotifs.set_index('ComponentIndex')['topmotifs'])
+    edges["TopSharedMotifs"] = edges["ComponentIndex"].map(
+        topmotifs.set_index("ComponentIndex")["topmotifs"]
+    )
 
     # add separate edge for each shared motif
-    edges.insert(loc=1, column='interaction', value='cosine')
+    edges.insert(loc=1, column="interaction", value="cosine")
 
     cols = edges.columns
     lst = []
 
     for index, row in edges.iterrows():
-        if row['shared_motifs'] != 'None':
-            for idx, val in enumerate(row['shared_motifs']):
-                if 'EdgeAnnotation' not in edges.columns:
-                    lst.append([row['CLUSTERID1'], row['shared_motifs'][idx], row['CLUSTERID2'],
-                                row['DeltaMZ'], row['MEH'], row['Cosine'], row['OtherScore'], row['ComponentIndex'],
-                                row['shared_motifs'], row['TopSharedMotifs']])
+        if row["shared_motifs"] != "None":
+            for idx, val in enumerate(row["shared_motifs"]):
+                if "EdgeAnnotation" not in edges.columns:
+                    lst.append(
+                        [
+                            row["CLUSTERID1"],
+                            row["shared_motifs"][idx],
+                            row["CLUSTERID2"],
+                            row["DeltaMZ"],
+                            row["MEH"],
+                            row["Cosine"],
+                            row["OtherScore"],
+                            row["ComponentIndex"],
+                            row["shared_motifs"],
+                            row["TopSharedMotifs"],
+                        ]
+                    )
                 else:
-                    lst.append([row['CLUSTERID1'], row['shared_motifs'][idx], row['CLUSTERID2'],
-                                row['DeltaMZ'], row['MEH'], row['Cosine'], row['OtherScore'], row['ComponentIndex'],
-                                row['EdgeAnnotation'], row['shared_motifs'], row['TopSharedMotifs']])
+                    lst.append(
+                        [
+                            row["CLUSTERID1"],
+                            row["shared_motifs"][idx],
+                            row["CLUSTERID2"],
+                            row["DeltaMZ"],
+                            row["MEH"],
+                            row["Cosine"],
+                            row["OtherScore"],
+                            row["ComponentIndex"],
+                            row["EdgeAnnotation"],
+                            row["shared_motifs"],
+                            row["TopSharedMotifs"],
+                        ]
+                    )
 
     motifedges = pd.DataFrame(lst, columns=cols)
     edges = pd.concat([edges, motifedges])
 
-    return {'nodes': comb, 'edges': edges}
+    return {"nodes": comb, "edges": edges}
 
 
 def make_inchidic(smilesdic):
@@ -122,8 +158,8 @@ def make_inchidic(smilesdic):
     :rtype: InChIKeys
 
     """
-    inchi_dic = smilesdic['dic'].copy()
-    d = {k: v for k, v in zip(smilesdic['df'].SMILES, smilesdic['df'].inchikey)}
+    inchi_dic = smilesdic["dic"].copy()
+    d = {k: v for k, v in zip(smilesdic["df"].SMILES, smilesdic["df"].inchikey)}
     for k in inchi_dic:
         inchi_dic[k] = [d.get(k, k) for k in inchi_dic[k] if d.get(k, k) != k]
 
@@ -137,8 +173,8 @@ def make_inchidic_INCHIS(smilesdic):
     :return: A dictionary of InChIKeys
     :rtype: InChIKeys
     """
-    inchi_dic = smilesdic['dic'].copy()
-    d = {k: v for k, v in zip(smilesdic['df'].INCHI, smilesdic['df'].inchikey)}
+    inchi_dic = smilesdic["dic"].copy()
+    d = {k: v for k, v in zip(smilesdic["df"].INCHI, smilesdic["df"].inchikey)}
     for k in inchi_dic:
         inchi_dic[k] = [d.get(k, k) for k in inchi_dic[k] if d.get(k, k) != k]
 
@@ -156,49 +192,61 @@ def unique_smiles(matches):
     """
     # combine SMILES for same feature into one string of features
     for index, item in enumerate(matches):
-        if 'Scan' in matches[index].columns:
-            matches[index] = matches[index].groupby('Scan', as_index=False).agg(lambda x: ','.join(set(x.dropna())))
-            matches[index] = matches[index].rename(columns={'Scan': 'cluster.index'})
-        if '#Scan#' in matches[index].columns:
-            matches[index] = matches[index].groupby('#Scan#', as_index=False).agg(lambda x: ','.join(set(x.dropna())))
-            matches[index] = matches[index].rename(columns={'#Scan#': 'cluster.index'})
+        if "Scan" in matches[index].columns:
+            matches[index] = (
+                matches[index]
+                .groupby("Scan", as_index=False)
+                .agg(lambda x: ",".join(set(x.dropna())))
+            )
+            matches[index] = matches[index].rename(columns={"Scan": "cluster.index"})
+        if "#Scan#" in matches[index].columns:
+            matches[index] = (
+                matches[index]
+                .groupby("#Scan#", as_index=False)
+                .agg(lambda x: ",".join(set(x.dropna())))
+            )
+            matches[index] = matches[index].rename(columns={"#Scan#": "cluster.index"})
 
-    comb = reduce(lambda left, right: pd.merge(left, right, on='cluster.index', how="outer"), matches)
-    if 'FusionSMILES' in comb.columns:
-        comb = comb.drop(['FusionSMILES', 'ConsensusSMILES'], axis=1)
+    comb = reduce(
+        lambda left, right: pd.merge(left, right, on="cluster.index", how="outer"),
+        matches,
+    )
+    if "FusionSMILES" in comb.columns:
+        comb = comb.drop(["FusionSMILES", "ConsensusSMILES"], axis=1)
 
     # concatenate all SMILES
-    comb['AllSmiles'] = comb.filter(regex='^.*(Smiles|SMILES).*$').apply(
-        lambda x: ','.join([y for y in x.tolist() if str(y) != 'nan']), axis=1)
+    comb["AllSmiles"] = comb.filter(regex="^.*(Smiles|SMILES).*$").apply(
+        lambda x: ",".join([y for y in x.tolist() if str(y) != "nan"]), axis=1
+    )
 
     # create dictionary of SMILES
-    comb_dic = comb.set_index('cluster.index')['AllSmiles'].to_dict()
+    comb_dic = comb.set_index("cluster.index")["AllSmiles"].to_dict()
 
     # split comma separated strings of SMILES
     for k in comb_dic:
-        comb_dic[k] = comb_dic[k].split(',')
+        comb_dic[k] = comb_dic[k].split(",")
 
     # retrieve unique SMILES per feature
     for i in comb_dic:
         comb_dic[i] = list(set(comb_dic[i]))
 
     # remove empty values
-    comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == ['']}
+    comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == [""]}
     comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == []}
-    comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == [' ']}
+    comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == [" "]}
 
     # convert dictionary into list of unique SMILES
     l = list(set([item for sublist in list(comb_dic.values()) for item in sublist]))
     l = [x.strip() for x in l]
-    l = [x for x in l if x not in ['', ' ', None, 'N/A']]
+    l = [x for x in l if x not in ["", " ", None, "N/A"]]
 
     # convert list into dataframe
     df = pd.DataFrame({"SMILES": l})
 
     # remove white space from SMILES
-    df.SMILES = df.SMILES.str.replace(' ', '')
+    df.SMILES = df.SMILES.str.replace(" ", "")
 
-    return {'df': df, 'dic': comb_dic}
+    return {"df": df, "dic": comb_dic}
 
 
 def unique_inchis(matches):
@@ -209,43 +257,54 @@ def unique_inchis(matches):
     # matches[index] = matches[index].rename(columns = {'Scan':'cluster.index'})
 
     for index, item in enumerate(matches):
-        if 'Scan' in matches[index].columns:
-            matches[index] = matches[index].groupby('Scan', as_index=False).agg(
-                lambda x: ';'.join(map(str, x)) if is_numeric_dtype(x) else ';'.join(set(x.dropna())))
-            matches[index] = matches[index].rename(columns={'Scan': 'cluster.index'})
+        if "Scan" in matches[index].columns:
+            matches[index] = (
+                matches[index]
+                .groupby("Scan", as_index=False)
+                .agg(
+                    lambda x: ";".join(map(str, x))
+                    if is_numeric_dtype(x)
+                    else ";".join(set(x.dropna()))
+                )
+            )
+            matches[index] = matches[index].rename(columns={"Scan": "cluster.index"})
 
-    comb = reduce(lambda left, right: pd.merge(left, right, on='cluster.index', how="outer"), matches)
-    if 'FusionSMILES' in comb.columns:
-        comb = comb.drop(['FusionSMILES', 'ConsensusSMILES'], axis=1)
+    comb = reduce(
+        lambda left, right: pd.merge(left, right, on="cluster.index", how="outer"),
+        matches,
+    )
+    if "FusionSMILES" in comb.columns:
+        comb = comb.drop(["FusionSMILES", "ConsensusSMILES"], axis=1)
 
     # concatenate all SMILES
-    comb['All_INCHIS'] = comb.filter(regex='^.*(INCHI).*$').apply(
-        lambda x: ';'.join([y for y in x.tolist() if str(y) != 'nan']), axis=1)
+    comb["All_INCHIS"] = comb.filter(regex="^.*(INCHI).*$").apply(
+        lambda x: ";".join([y for y in x.tolist() if str(y) != "nan"]), axis=1
+    )
 
     # create dictionary of SMILES
-    comb_dic = comb.set_index('cluster.index')['All_INCHIS'].to_dict()
+    comb_dic = comb.set_index("cluster.index")["All_INCHIS"].to_dict()
 
     # split comma separated strings of SMILES
     for k in comb_dic:
-        comb_dic[k] = comb_dic[k].split(';')
+        comb_dic[k] = comb_dic[k].split(";")
 
     # retrieve unique SMILES per feature
     for i in comb_dic:
         comb_dic[i] = list(set(comb_dic[i]))
 
     # remove empty values
-    comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == ['']}  # 2172
+    comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == [""]}  # 2172
     comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == []}
-    comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == [' ']}
+    comb_dic = {k: comb_dic[k] for k in comb_dic if not comb_dic[k] == [" "]}
 
     # convert dictionary into list of unique SMILES
     l = list(set([item for sublist in list(comb_dic.values()) for item in sublist]))
-    l = [x for x in l if x not in ['', ' ', None]]
+    l = [x for x in l if x not in ["", " ", None]]
 
     # convert list into dataframe
     df = pd.DataFrame({"INCHI": l})
 
-    return {'df': df, 'dic': comb_dic}
+    return {"df": df, "dic": comb_dic}
 
 
 def highestscore(a, chem_dic, score):
@@ -277,7 +336,11 @@ def highestscore(a, chem_dic, score):
         subl = []
         for j in i:
             dic_a = dict(Counter(j))
-            out = {k: v / total for total in (sum(dic_a.values()),) for k, v in dic_a.items()}
+            out = {
+                k: v / total
+                for total in (sum(dic_a.values()),)
+                for k, v in dic_a.items()
+            }
             subl.append(out)
         chem_scores.append(subl)
 
@@ -329,7 +392,9 @@ def molfam_classes(net, df, smilesdict):
 
     # rename componentindex of selfloops, so they are considered independently of each other
     selfs = list(range(1, len(net.componentindex[net.componentindex == -1]) + 1))
-    net.loc[net.componentindex == -1, ['componentindex']] = ["S" + str(s) for s in selfs]
+    net.loc[net.componentindex == -1, ["componentindex"]] = [
+        "S" + str(s) for s in selfs
+    ]
 
     kingdom_dic = smilesdict.copy()
     d = {k: v for k, v in zip(df.inchikey, df.kingdom)}
@@ -367,12 +432,12 @@ def molfam_classes(net, df, smilesdict):
         MFramework_dic[k] = [d.get(k, k) for k in MFramework_dic[k] if d.get(k, k) != k]
 
     # iterate over all cluster indexes
-    ci = list(set(net['componentindex']))
+    ci = list(set(net["componentindex"]))
 
     # get list of all cluster indexes per componentindex
     a = []
     for i in ci:
-        a.append(list(net.loc[net['componentindex'] == i, 'cluster index']))
+        a.append(list(net.loc[net["componentindex"] == i, "cluster index"]))
 
     # remove all items that do not have any SMILES (are not contained in keys of smilesdict)
     # score retrieves number of nodes per cluster index
@@ -403,21 +468,68 @@ def molfam_classes(net, df, smilesdict):
     MFramework_score = [item[1] for item in MFramework_finalscore]
 
     data_tuples = list(
-        zip(ci, score, kingdom, kingdom_score, superclass, superclass_score, CF_class, CF_class_score, subclass,
-            subclass_score, Dparent, Dparent_score, MFramework, MFramework_score))
-    sumary = pd.DataFrame(data_tuples,
-                          columns=['componentindex', 'CF_NrNodes', 'CF_kingdom', 'CF_kingdom_score', 'CF_superclass',
-                                   'CF_superclass_score', 'CF_class', 'CF_class_score', 'CF_subclass',
-                                   'CF_subclass_score', 'CF_Dparent', 'CF_Dparent_score', 'CF_MFramework',
-                                   'CF_MFramework_score'])
+        zip(
+            ci,
+            score,
+            kingdom,
+            kingdom_score,
+            superclass,
+            superclass_score,
+            CF_class,
+            CF_class_score,
+            subclass,
+            subclass_score,
+            Dparent,
+            Dparent_score,
+            MFramework,
+            MFramework_score,
+        )
+    )
+    sumary = pd.DataFrame(
+        data_tuples,
+        columns=[
+            "componentindex",
+            "CF_NrNodes",
+            "CF_kingdom",
+            "CF_kingdom_score",
+            "CF_superclass",
+            "CF_superclass_score",
+            "CF_class",
+            "CF_class_score",
+            "CF_subclass",
+            "CF_subclass_score",
+            "CF_Dparent",
+            "CF_Dparent_score",
+            "CF_MFramework",
+            "CF_MFramework_score",
+        ],
+    )
 
-    final = pd.merge(net[['componentindex', 'cluster index']], sumary, on='componentindex')
+    final = pd.merge(
+        net[["componentindex", "cluster index"]], sumary, on="componentindex"
+    )
 
     # make cluster index first column
-    final = final[['cluster index', 'componentindex', 'CF_NrNodes', 'CF_kingdom', 'CF_kingdom_score', 'CF_superclass',
-                   'CF_superclass_score', 'CF_class', 'CF_class_score', 'CF_subclass', 'CF_subclass_score',
-                   'CF_Dparent', 'CF_Dparent_score', 'CF_MFramework', 'CF_MFramework_score']]
-    final = final.rename(columns={'componentindex': 'CF_componentindex'})
+    final = final[
+        [
+            "cluster index",
+            "componentindex",
+            "CF_NrNodes",
+            "CF_kingdom",
+            "CF_kingdom_score",
+            "CF_superclass",
+            "CF_superclass_score",
+            "CF_class",
+            "CF_class_score",
+            "CF_subclass",
+            "CF_subclass_score",
+            "CF_Dparent",
+            "CF_Dparent_score",
+            "CF_MFramework",
+            "CF_MFramework_score",
+        ]
+    ]
+    final = final.rename(columns={"componentindex": "CF_componentindex"})
 
     return final
 
@@ -434,57 +546,77 @@ def make_classyfire_graphml(graphML, final):
 
     """
     for v in graphML.nodes():
-
-        graphML.node[v]['CF_componentindex'] = str(
-            final[final['cluster index'] == int(v)]['CF_componentindex'].iloc[-1])
-        graphML.node[v]['CF_NrNodes'] = float(final[final['cluster index'] == int(v)]['CF_NrNodes'].iloc[-1])
-        graphML.node[v]['CF_kingdom'] = str(final[final['cluster index'] == int(v)]['CF_kingdom'].iloc[-1])
+        graphML.node[v]["CF_componentindex"] = str(
+            final[final["cluster index"] == int(v)]["CF_componentindex"].iloc[-1]
+        )
+        graphML.node[v]["CF_NrNodes"] = float(
+            final[final["cluster index"] == int(v)]["CF_NrNodes"].iloc[-1]
+        )
+        graphML.node[v]["CF_kingdom"] = str(
+            final[final["cluster index"] == int(v)]["CF_kingdom"].iloc[-1]
+        )
 
         try:
-            graphML.node[v]['CF_kingdom_score'] = float(
-                final[final['cluster index'] == int(v)]['CF_kingdom_score'].iloc[-1])
+            graphML.node[v]["CF_kingdom_score"] = float(
+                final[final["cluster index"] == int(v)]["CF_kingdom_score"].iloc[-1]
+            )
         except:
-            graphML.node[v]['CF_kingdom_score'] = object()
+            graphML.node[v]["CF_kingdom_score"] = object()
 
-        graphML.node[v]['CF_superclass'] = str(final[final['cluster index'] == int(v)]['CF_superclass'].iloc[-1])
+        graphML.node[v]["CF_superclass"] = str(
+            final[final["cluster index"] == int(v)]["CF_superclass"].iloc[-1]
+        )
 
         try:
-            graphML.node[v]['CF_superclass_score'] = float(
-                final[final['cluster index'] == int(v)]['CF_superclass_score'].iloc[-1])
+            graphML.node[v]["CF_superclass_score"] = float(
+                final[final["cluster index"] == int(v)]["CF_superclass_score"].iloc[-1]
+            )
         except:
-            graphML.node[v]['CF_superclass_score'] = object()
+            graphML.node[v]["CF_superclass_score"] = object()
 
-        graphML.node[v]['CF_class'] = str(final[final['cluster index'] == int(v)]['CF_class'].iloc[-1])
+        graphML.node[v]["CF_class"] = str(
+            final[final["cluster index"] == int(v)]["CF_class"].iloc[-1]
+        )
 
         try:
-            graphML.node[v]['CF_class_score'] = float(
-                final[final['cluster index'] == int(v)]['CF_class_score'].iloc[-1])
+            graphML.node[v]["CF_class_score"] = float(
+                final[final["cluster index"] == int(v)]["CF_class_score"].iloc[-1]
+            )
         except:
-            graphML.node[v]['CF_class_score'] = object()
+            graphML.node[v]["CF_class_score"] = object()
 
-        graphML.node[v]['CF_subclass'] = str(final[final['cluster index'] == int(v)]['CF_subclass'].iloc[-1])
+        graphML.node[v]["CF_subclass"] = str(
+            final[final["cluster index"] == int(v)]["CF_subclass"].iloc[-1]
+        )
 
         try:
-            graphML.node[v]['CF_subclass_score'] = float(
-                final[final['cluster index'] == int(v)]['CF_subclass_score'].iloc[-1])
+            graphML.node[v]["CF_subclass_score"] = float(
+                final[final["cluster index"] == int(v)]["CF_subclass_score"].iloc[-1]
+            )
         except:
-            graphML.node[v]['CF_subclass_score'] = object()
+            graphML.node[v]["CF_subclass_score"] = object()
 
-        graphML.node[v]['CF_Dparent'] = str(final[final['cluster index'] == int(v)]['CF_Dparent'].iloc[-1])
+        graphML.node[v]["CF_Dparent"] = str(
+            final[final["cluster index"] == int(v)]["CF_Dparent"].iloc[-1]
+        )
 
         try:
-            graphML.node[v]['CF_Dparent_score'] = float(
-                final[final['cluster index'] == int(v)]['CF_Dparent_score'].iloc[-1])
+            graphML.node[v]["CF_Dparent_score"] = float(
+                final[final["cluster index"] == int(v)]["CF_Dparent_score"].iloc[-1]
+            )
         except:
-            graphML.node[v]['CF_Dparent_score'] = object()
+            graphML.node[v]["CF_Dparent_score"] = object()
 
-        graphML.node[v]['CF_MFramework'] = str(final[final['cluster index'] == int(v)]['CF_MFramework'].iloc[-1])
+        graphML.node[v]["CF_MFramework"] = str(
+            final[final["cluster index"] == int(v)]["CF_MFramework"].iloc[-1]
+        )
 
         try:
-            graphML.node[v]['CF_MFramework_score'] = float(
-                final[final['cluster index'] == int(v)]['CF_MFramework_score'].iloc[-1])
+            graphML.node[v]["CF_MFramework_score"] = float(
+                final[final["cluster index"] == int(v)]["CF_MFramework_score"].iloc[-1]
+            )
         except ValueError:
-            graphML.node[v]['CF_MFramework_score'] = object()
+            graphML.node[v]["CF_MFramework_score"] = object()
 
     return graphML
 
@@ -501,26 +633,34 @@ def make_motif_graphml(nodes, edges):
 
     """
     # convert lists to strings
-    edges['shared_motifs'] = edges['shared_motifs'].replace('None', '')
-    edges['TopSharedMotifs'] = edges['TopSharedMotifs'].replace('None', '')
-    edges['shared_motifs'] = edges['shared_motifs'].agg(lambda x: ','.join(map(str, x)))
-    edges['TopSharedMotifs'] = edges['TopSharedMotifs'].agg(lambda x: ','.join(map(str, x)))
+    edges["shared_motifs"] = edges["shared_motifs"].replace("None", "")
+    edges["TopSharedMotifs"] = edges["TopSharedMotifs"].replace("None", "")
+    edges["shared_motifs"] = edges["shared_motifs"].agg(lambda x: ",".join(map(str, x)))
+    edges["TopSharedMotifs"] = edges["TopSharedMotifs"].agg(
+        lambda x: ",".join(map(str, x))
+    )
 
     # create motif network with multiple edges
-    MG = nx.from_pandas_edgelist(edges, 'CLUSTERID1', 'CLUSTERID2',
-                                 edge_attr=list(set(list(edges.columns)) - set(['CLUSTERID1', 'CLUSTERID2'])),
-                                 create_using=nx.MultiGraph())
+    MG = nx.from_pandas_edgelist(
+        edges,
+        "CLUSTERID1",
+        "CLUSTERID2",
+        edge_attr=list(set(list(edges.columns)) - set(["CLUSTERID1", "CLUSTERID2"])),
+        create_using=nx.MultiGraph(),
+    )
 
     # map node attributes to network
-    nodes['precursormass'] = nodes['precursormass'].agg(lambda x: ','.join(map(str, x)))
-    nodes['parentrt'] = nodes['parentrt'].agg(lambda x: ','.join(map(str, x)))
-    nodes['document'] = nodes['document'].agg(lambda x: ','.join(map(str, x)))
-    nodes['motif'] = nodes['motif'].agg(lambda x: ','.join(map(str, x)))
-    nodes['probability'] = nodes['probability'].agg(lambda x: ','.join(map(str, x)))
-    nodes['overlap'] = nodes['overlap'].agg(lambda x: ','.join(map(str, x)))
+    nodes["precursormass"] = nodes["precursormass"].agg(lambda x: ",".join(map(str, x)))
+    nodes["parentrt"] = nodes["parentrt"].agg(lambda x: ",".join(map(str, x)))
+    nodes["document"] = nodes["document"].agg(lambda x: ",".join(map(str, x)))
+    nodes["motif"] = nodes["motif"].agg(lambda x: ",".join(map(str, x)))
+    nodes["probability"] = nodes["probability"].agg(lambda x: ",".join(map(str, x)))
+    nodes["overlap"] = nodes["overlap"].agg(lambda x: ",".join(map(str, x)))
 
     for column in nodes:
-        nx.set_node_attributes(MG, pd.Series(nodes[column], index=nodes.index).to_dict(), column)
+        nx.set_node_attributes(
+            MG, pd.Series(nodes[column], index=nodes.index).to_dict(), column
+        )
 
     return MG
 
@@ -534,44 +674,64 @@ def make_classy_table(jsondic):
     dmetadatalist = []
 
     for idx, entry in enumerate(jsondic):
-
         mdict = {}
 
-        if (entry != {} and entry != None):
-
-            if sum([bool(re.match('smiles', x)) for x in entry.keys()]) > 0 and entry['smiles'] is not None:
-                mdict['smiles'] = entry['smiles']
-            if sum([bool(re.match('inchikey', x)) for x in entry.keys()]) > 0 and entry['inchikey'] is not None:
-                mdict['inchikey'] = entry['inchikey']
-            if sum([bool(re.match('kingdom', x)) for x in entry.keys()]) > 0 and entry['kingdom'] is not None:
-                mdict['kingdom'] = entry['kingdom']['name']
-            if sum([bool(re.match('superclass', x)) for x in entry.keys()]) > 0 and entry['superclass'] is not None:
-                mdict['superclass'] = entry['superclass']['name']
-            if sum([bool(re.match('class', x)) for x in entry.keys()]) > 0 and entry['class'] is not None:
-                mdict['class'] = entry['class']['name']
-            if sum([bool(re.match('subclass', x)) for x in entry.keys()]) > 0 and entry['subclass'] is not None:
-                mdict['subclass'] = entry['subclass']['name']
-            if sum([bool(re.match('direct_parent', x)) for x in entry.keys()]) > 0 and entry[
-                'direct_parent'] is not None:
-                mdict['direct_parent'] = entry['direct_parent']['name']
-            if sum([bool(re.match('molecular_framework', x)) for x in entry.keys()]) > 0 and entry[
-                'molecular_framework'] is not None:
-                mdict['molecular_framework'] = entry['molecular_framework']
+        if entry != {} and entry != None:
+            if (
+                sum([bool(re.match("smiles", x)) for x in entry.keys()]) > 0
+                and entry["smiles"] is not None
+            ):
+                mdict["smiles"] = entry["smiles"]
+            if (
+                sum([bool(re.match("inchikey", x)) for x in entry.keys()]) > 0
+                and entry["inchikey"] is not None
+            ):
+                mdict["inchikey"] = entry["inchikey"]
+            if (
+                sum([bool(re.match("kingdom", x)) for x in entry.keys()]) > 0
+                and entry["kingdom"] is not None
+            ):
+                mdict["kingdom"] = entry["kingdom"]["name"]
+            if (
+                sum([bool(re.match("superclass", x)) for x in entry.keys()]) > 0
+                and entry["superclass"] is not None
+            ):
+                mdict["superclass"] = entry["superclass"]["name"]
+            if (
+                sum([bool(re.match("class", x)) for x in entry.keys()]) > 0
+                and entry["class"] is not None
+            ):
+                mdict["class"] = entry["class"]["name"]
+            if (
+                sum([bool(re.match("subclass", x)) for x in entry.keys()]) > 0
+                and entry["subclass"] is not None
+            ):
+                mdict["subclass"] = entry["subclass"]["name"]
+            if (
+                sum([bool(re.match("direct_parent", x)) for x in entry.keys()]) > 0
+                and entry["direct_parent"] is not None
+            ):
+                mdict["direct_parent"] = entry["direct_parent"]["name"]
+            if (
+                sum([bool(re.match("molecular_framework", x)) for x in entry.keys()])
+                > 0
+                and entry["molecular_framework"] is not None
+            ):
+                mdict["molecular_framework"] = entry["molecular_framework"]
         else:
-
-            mdict['smiles'] = "None"
-            mdict['inchikey'] = "None"
-            mdict['kingdom'] = "None"
-            mdict['superclass'] = "None"
-            mdict['class'] = "None"
-            mdict['subclass'] = "None"
-            mdict['direct_parent'] = "None"
-            mdict['molecular_framework'] = "None"
+            mdict["smiles"] = "None"
+            mdict["inchikey"] = "None"
+            mdict["kingdom"] = "None"
+            mdict["superclass"] = "None"
+            mdict["class"] = "None"
+            mdict["subclass"] = "None"
+            mdict["direct_parent"] = "None"
+            mdict["molecular_framework"] = "None"
 
         dmetadatalist.append(mdict)
 
     df_metares = pd.DataFrame.from_dict(dmetadatalist)
-    return (df_metares)
+    return df_metares
 
 
 """
@@ -653,7 +813,7 @@ chunk_size = 1000
 sleep_interval = 60
 
 
-def structure_query(compound, label='pyclassyfire'):
+def structure_query(compound, label="pyclassyfire"):
     """Submit a compound information to the ClassyFire service for evaluation
     and receive a id which can be used to used to collect results
 
@@ -670,15 +830,17 @@ def structure_query(compound, label='pyclassyfire'):
     >>> structure_query('InChI=1S/C3H4O3/c1-2(4)3(5)6/h1H3,(H,5,6)')
 
     """
-    r = requests.post(url + '/queries.json', data='{"label": "%s", '
-                                                  '"query_input": "%s", "query_type": "STRUCTURE"}'
-                                                  % (label, compound),
-                      headers={"Content-Type": "application/json"})
+    r = requests.post(
+        url + "/queries.json",
+        data='{"label": "%s", '
+        '"query_input": "%s", "query_type": "STRUCTURE"}' % (label, compound),
+        headers={"Content-Type": "application/json"},
+    )
     r.raise_for_status()
-    return r.json()['id']
+    return r.json()["id"]
 
 
-def iupac_query(compound, label='pyclassyfire'):
+def iupac_query(compound, label="pyclassyfire"):
     """Submit a IUPAC compound name to the ClassyFire service for evaluation
      and receive a id which can be used to used to collect results.
 
@@ -694,12 +856,14 @@ def iupac_query(compound, label='pyclassyfire'):
     >>> iupac_query('C001\\tethane\\nC002\\tethanol', 'iupac_test')
 
     """
-    r = requests.post(url + '/queries.json', data='{"label": "%s", '
-                                                  '"query_input": "%s", "query_type": "IUPAC_NAME"}'
-                                                  % (label, compound),
-                      headers={"Content-Type": "application/json"})
+    r = requests.post(
+        url + "/queries.json",
+        data='{"label": "%s", '
+        '"query_input": "%s", "query_type": "IUPAC_NAME"}' % (label, compound),
+        headers={"Content-Type": "application/json"},
+    )
     r.raise_for_status()
-    return r.json()['id']
+    return r.json()["id"]
 
 
 def get_results(query_id, return_format="json", blocking=False):
@@ -718,14 +882,18 @@ def get_results(query_id, return_format="json", blocking=False):
 
     """
     if blocking == False:
-        r = requests.get('%s/queries/%s.%s' % (url, query_id, return_format),
-                         headers={"Content-Type": "application/%s" % return_format})
+        r = requests.get(
+            "%s/queries/%s.%s" % (url, query_id, return_format),
+            headers={"Content-Type": "application/%s" % return_format},
+        )
         r.raise_for_status()
         return r.text
     else:
         while True:
-            r = requests.get('%s/queries/%s.%s' % (url, query_id, return_format),
-                             headers={"Content-Type": "application/%s" % return_format})
+            r = requests.get(
+                "%s/queries/%s.%s" % (url, query_id, return_format),
+                headers={"Content-Type": "application/%s" % return_format},
+            )
             r.raise_for_status()
             result_json = r.json()
             if result_json["classification_status"] != "In Queue":
@@ -751,21 +919,21 @@ def get_entity(inchikey, return_format="json", gnps_proxy=True):
     >>> get_entity("ATUOYWHBWRKTHZ-UHFFFAOYSA-N", 'sdf')
 
     """
-    inchikey = inchikey.replace('InChIKey=', '')
+    inchikey = inchikey.replace("InChIKey=", "")
 
     if gnps_proxy == True:
-
-        r = requests.get('%s/entities/%s.%s' % (proxy_url, inchikey, return_format),
-                         headers={
-                             "Content-Type": "application/%s" % return_format})
-        print('%s/entities/%s.%s' % (proxy_url, inchikey, return_format))
+        r = requests.get(
+            "%s/entities/%s.%s" % (proxy_url, inchikey, return_format),
+            headers={"Content-Type": "application/%s" % return_format},
+        )
+        print("%s/entities/%s.%s" % (proxy_url, inchikey, return_format))
 
     else:
-
-        r = requests.get('%s/entities/%s.%s' % (url, inchikey, return_format),
-                         headers={
-                             "Content-Type": "application/%s" % return_format})
-        print('%s/entities/%s.%s' % (url, inchikey, return_format))
+        r = requests.get(
+            "%s/entities/%s.%s" % (url, inchikey, return_format),
+            headers={"Content-Type": "application/%s" % return_format},
+        )
+        print("%s/entities/%s.%s" % (url, inchikey, return_format))
 
     r.raise_for_status()
     return r.text
@@ -783,14 +951,21 @@ def get_chemont_node(chemontid):
 
     """
     chemontid = chemontid.replace("CHEMONTID:", "C")
-    r = requests.get('%s/tax_nodes/%s.json' % (url, chemontid),
-                     headers={"Content-Type": "application/json"})
+    r = requests.get(
+        "%s/tax_nodes/%s.json" % (url, chemontid),
+        headers={"Content-Type": "application/json"},
+    )
     r.raise_for_status()
     return r.text
 
 
-def tabular_query(inpath, structure_key, dialect='excel', outpath=None,
-                  outfields=('taxonomy', 'description', 'substituents')):
+def tabular_query(
+    inpath,
+    structure_key,
+    dialect="excel",
+    outpath=None,
+    outfields=("taxonomy", "description", "substituents"),
+):
     """Given a path to a compound set in tabular form (comma or tab delimited)
      annotate all compounds and write results to an expanded table.
 
@@ -810,40 +985,49 @@ def tabular_query(inpath, structure_key, dialect='excel', outpath=None,
     >>> tabular_query('/tabulated_data.tsv', 'structure', 'excel-tab')
 
     """
-    tax_fields = ('kingdom', 'superclass', 'class', 'subclass')
+    tax_fields = ("kingdom", "superclass", "class", "subclass")
     query_ids = []
-    infile = open(inpath, 'rU')
+    infile = open(inpath, "rU")
     if not outpath:
         outpath = _prevent_overwrite(inpath)
     comps = []
     for line in csv.DictReader(infile, dialect=dialect):
         comps.append(line[structure_key])
         if not len(comps) % chunk_size:
-            query_ids.append(structure_query('\\n'.join(comps)))
+            query_ids.append(structure_query("\\n".join(comps)))
             comps = []
     if comps:
-        query_ids.append(structure_query('\\n'.join(comps)))
-    print('%s queries submitted to ClassyFire API' % len(query_ids))
+        query_ids.append(structure_query("\\n".join(comps)))
+    print("%s queries submitted to ClassyFire API" % len(query_ids))
     i = 0
     infile.seek(0)
-    with open(outpath, 'w') as outfile:
+    with open(outpath, "w") as outfile:
         reader = csv.DictReader(infile, dialect=dialect)
-        writer = csv.DictWriter(outfile, reader.fieldnames + list(outfields),
-                                dialect=dialect)
+        writer = csv.DictWriter(
+            outfile, reader.fieldnames + list(outfields), dialect=dialect
+        )
         writer.writeheader()
         while i < len(query_ids):
             result = json.loads(get_results(query_ids[i]))
             if result["classification_status"] == "Done":
                 for j, line in enumerate(reader):
-                    if result['entities'] and str(j + 1) == result['entities'][0]['identifier'].split('-')[1]:
-                        hit = result['entities'].pop(0)
-                        if 'taxonomy' in outfields:
-                            hit['taxonomy'] = ";".join(
-                                ['%s:%s' % (hit[x]['name'], hit[x]['chemont_id'])
-                                 for x in tax_fields if hit[x]])
+                    if (
+                        result["entities"]
+                        and str(j + 1)
+                        == result["entities"][0]["identifier"].split("-")[1]
+                    ):
+                        hit = result["entities"].pop(0)
+                        if "taxonomy" in outfields:
+                            hit["taxonomy"] = ";".join(
+                                [
+                                    "%s:%s" % (hit[x]["name"], hit[x]["chemont_id"])
+                                    for x in tax_fields
+                                    if hit[x]
+                                ]
+                            )
                         for field in outfields:
                             if isinstance(hit[field], list):
-                                line[field] = ';'.join(hit[field])
+                                line[field] = ";".join(hit[field])
                             else:
                                 line[field] = hit[field]
                     writer.writerow(line)
@@ -867,6 +1051,7 @@ def sdf_query(inpath, outpath=None):
 
     """
     from rdkit.Chem import AllChem
+
     query_ids = []
     if not outpath:
         outpath = _prevent_overwrite(inpath)
@@ -875,24 +1060,24 @@ def sdf_query(inpath, outpath=None):
         if mol:
             comps.append(AllChem.MolToSmiles(mol))
         if not len(comps) % chunk_size:
-            query_ids.append(structure_query('/n'.join(comps)))
+            query_ids.append(structure_query("/n".join(comps)))
             comps = []
     if comps:
-        query_ids.append(structure_query('\\n'.join(comps)))
-    print('%s queries submitted to ClassyFire API' % len(query_ids))
+        query_ids.append(structure_query("\\n".join(comps)))
+    print("%s queries submitted to ClassyFire API" % len(query_ids))
     i = 0
-    with open(outpath, 'w') as outfile:
+    with open(outpath, "w") as outfile:
         while i < len(query_ids):
             result = json.loads(get_results(query_ids[i]))
             if result["classification_status"] == "Done":
-                outfile.write(get_results(query_ids[i], return_format='sdf'))
+                outfile.write(get_results(query_ids[i], return_format="sdf"))
                 i += 1
             else:
                 print("%s percent complete" % round(i / len(query_ids) * 100))
                 time.sleep(sleep_interval)
 
 
-def _prevent_overwrite(write_path, suffix='_annotated'):
+def _prevent_overwrite(write_path, suffix="_annotated"):
     """Prevents overwrite of existing output files by appending a suffix when
     needed
 
@@ -902,10 +1087,10 @@ def _prevent_overwrite(write_path, suffix='_annotated'):
     :rtype:
     """
     while os.path.exists(write_path):
-        sp = write_path.split('.')
+        sp = write_path.split(".")
         if len(sp) > 1:
             sp[-2] += suffix
-            write_path = '.'.join(sp)
+            write_path = ".".join(sp)
         else:
             write_path += suffix
     return write_path
@@ -931,7 +1116,9 @@ def run_parallel_job(input_function, input_parameters_list, parallelism_level):
         return output_results_list
     else:
         results = Parallel(n_jobs=parallelism_level)(
-            delayed(input_function)(input_object) for input_object in input_parameters_list)
+            delayed(input_function)(input_object)
+            for input_object in input_parameters_list
+        )
         return results
 
 
@@ -952,6 +1139,8 @@ def get_classifications(inchifile):
             continue
 
         # all_inchi_keys = all_inchi_keys[-1000:]
-        all_json = run_parallel_job(get_structure_class_entity, all_inchi_keys, parallelism_level=50)
+        all_json = run_parallel_job(
+            get_structure_class_entity, all_inchi_keys, parallelism_level=50
+        )
 
         open("all_json.json", "w").write(json.dumps(all_json))

@@ -8,18 +8,20 @@ import certifi
 
 from pySubstructures.motifdb.constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
 
-http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+http = urllib3.PoolManager(cert_reqs="CERT_REQUIRED", ca_certs=certifi.where())
 
 
 def acquire_motifdb(db_list, filter_threshold=0.95):
     data = {}
-    data['motifset_id_list'] = db_list
-    data['filter'] = 'True'
-    data['filter_threshold'] = filter_threshold
+    data["motifset_id_list"] = db_list
+    data["filter"] = "True"
+    data["filter_threshold"] = filter_threshold
 
-    output = requests.post(MOTIFDB_SERVER_URL + 'get_motifset/', data=data, verify=certifi.where()).json()
-    motifdb_spectra = output['motifs']
-    motifdb_metadata = output['metadata']
+    output = requests.post(
+        MOTIFDB_SERVER_URL + "get_motifset/", data=data, verify=certifi.where()
+    ).json()
+    motifdb_spectra = output["motifs"]
+    motifdb_metadata = output["metadata"]
     motifdb_features = set()
     for m, spec in motifdb_spectra.items():
         for f in spec:
@@ -29,36 +31,36 @@ def acquire_motifdb(db_list, filter_threshold=0.95):
 
 
 def get_motifset_list():
-    url = MOTIFDB_SERVER_URL + 'list_motifsets'
+    url = MOTIFDB_SERVER_URL + "list_motifsets"
     output = http.request("GET", url)
     motifset_list = output.json()
     return motifset_list
 
 
 def _get_motifdb_token():
-    url = MOTIFDB_SERVER_URL + 'initialise_api'
+    url = MOTIFDB_SERVER_URL + "initialise_api"
     client = requests.session()
-    token = client.get(url).json()['token']
+    token = client.get(url).json()["token"]
     return client, token
 
 
 def post_motifsets(motifsets, filter_threshold=0.95):
     client, token = _get_motifdb_token()
 
-    url = MOTIFDB_SERVER_URL + 'get_motifset/'
-    data = {'csrfmiddlewaretoken': token}
+    url = MOTIFDB_SERVER_URL + "get_motifset/"
+    data = {"csrfmiddlewaretoken": token}
 
     motifset_list = get_motifset_list()
     id_list = [motifset_list[motifset] for motifset in motifsets]
-    data['motifset_id_list'] = id_list
-    data['filter'] = "True"
-    data['filter_threshold'] = filter_threshold  # Default value - not required
+    data["motifset_id_list"] = id_list
+    data["filter"] = "True"
+    data["filter_threshold"] = filter_threshold  # Default value - not required
     output = client.post(url, data=data).json()
     return output
 
 
 def get_motifset_metadata(motif_id):
-    url = MOTIFDB_SERVER_URL + 'get_motifset_metadata/{}/'.format(motif_id)
+    url = MOTIFDB_SERVER_URL + "get_motifset_metadata/{}/".format(motif_id)
     output = http.request("GET", url)
     motif_metadata = output.json()
     return motif_metadata
@@ -69,7 +71,7 @@ def load_db(db_list, db_path):
     # items in the list should be folder names in the dirctory indicated by db_path
     filenames = []
     for dir_name in db_list:
-        glob_path = os.path.join(db_path, dir_name, '*.m2m')
+        glob_path = os.path.join(db_path, dir_name, "*.m2m")
         print("Looking in {}".format(glob_path))
         new_filenames = glob.glob(glob_path)
         filenames += new_filenames
@@ -94,9 +96,9 @@ def load_db(db_list, db_path):
 def parse_m2m(filename):
     metadata = {}
     spectrum = {}
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         for line in f:
-            if line.startswith('#'):
+            if line.startswith("#"):
                 # it's some metadata
                 tokens = line.split()
                 key = tokens[0][1:].lower()
@@ -114,7 +116,7 @@ def parse_m2m(filename):
                 else:
                     print("Found unknown key ({}) in {}".format(key, filename))
             elif len(line) > 0:
-                mz, intensity = line.split(',')
+                mz, intensity = line.split(",")
                 spectrum[mz] = float(intensity)
     return spectrum, metadata
 
@@ -150,11 +152,12 @@ class MotifFilter(object):
                     print("Merging: {} and {} ({})".format(current_spec, spec, sim))
                     # chuck the merged motif into metadata so that we can find it later
                     merge_data.append(
-                        (spec, self.input_spectra[spec], self.input_metadata[spec], sim))
+                        (spec, self.input_spectra[spec], self.input_metadata[spec], sim)
+                    )
                     pos = spec_names.index(spec)
                     del spec_names[pos]
                 # self.input_metadata[current_spec]['merged'] = merge_data
-                self.input_metadata[current_spec]['merged'] = ",".join(spec_list)
+                self.input_metadata[current_spec]["merged"] = ",".join(spec_list)
 
         output_spectra = {}
         output_metadata = {}
@@ -169,11 +172,11 @@ class MotifFilter(object):
         prod = 0
         i1 = 0
         for mz, intensity in self.input_spectra[k].items():
-            i1 += intensity ** 2
+            i1 += intensity**2
             for mz2, intensity2 in self.input_spectra[k2].items():
                 if mz == mz2:
                     prod += intensity * intensity2
-        i2 = sum([i ** 2 for i in self.input_spectra[k2].values()])
+        i2 = sum([i**2 for i in self.input_spectra[k2].values()])
         return prod / (np.sqrt(i1) * np.sqrt(i2))
 
 
@@ -186,15 +189,22 @@ class FeatureMatcher(object):
         self.augmented_features = {f: v for f, v in other_features.items()}
 
         self.match()
-        self.match(ftype='loss')
+        self.match(ftype="loss")
 
-    def match(self, ftype='fragment'):
+    def match(self, ftype="fragment"):
         import bisect
+
         other_names = [f for f in self.other_features if f.startswith(ftype)]
-        other_min_mz = [self.other_features[f][0] for f in self.other_features if
-                        f.startswith(ftype)]
-        other_max_mz = [self.other_features[f][1] for f in self.other_features if
-                        f.startswith(ftype)]
+        other_min_mz = [
+            self.other_features[f][0]
+            for f in self.other_features
+            if f.startswith(ftype)
+        ]
+        other_max_mz = [
+            self.other_features[f][1]
+            for f in self.other_features
+            if f.startswith(ftype)
+        ]
 
         temp = list(zip(other_names, other_min_mz, other_max_mz))
         temp.sort(key=lambda x: x[1])
@@ -208,14 +218,16 @@ class FeatureMatcher(object):
         overlap_match = 0
         for f in [f for f in self.db_features if f.startswith(ftype)]:
             if f in other_names:
-                self.fmap[f] = f;
+                self.fmap[f] = f
                 exact_match += 1
             else:
-                fmz = float(f.split('_')[1])
+                fmz = float(f.split("_")[1])
                 if fmz < other_min_mz[0] or fmz > other_max_mz[-1]:
                     self.fmap[f] = f
                     self.augmented_features[f] = (
-                        fmz - self.bin_width / 2, fmz + self.bin_width / 2)
+                        fmz - self.bin_width / 2,
+                        fmz + self.bin_width / 2,
+                    )
                     new_ones += 1
                     continue
                 fpos = bisect.bisect_right(other_min_mz, fmz)
@@ -226,11 +238,15 @@ class FeatureMatcher(object):
                 else:
                     self.fmap[f] = f
                     self.augmented_features[f] = (
-                        fmz - self.bin_width / 2, fmz + self.bin_width / 2)
+                        fmz - self.bin_width / 2,
+                        fmz + self.bin_width / 2,
+                    )
                     new_ones += 1
         print(
             "Finished matching ({}). {} exact matches, {} overlap matches, {} new features".format(
-                ftype, exact_match, overlap_match, new_ones))
+                ftype, exact_match, overlap_match, new_ones
+            )
+        )
 
     def convert(self, dbspectra):
         for doc, spec in dbspectra.items():
