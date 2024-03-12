@@ -109,3 +109,9 @@ notebooks/test_data
 test.dict
 test_motifs_in_scans.tsv
 test_topic_report.pdf
+demo_cache.sqlite
+output.dict
+output_motifs_in_scans.tsv
+output_ms2lda_edges.tsv
+output_ms2lda_nodes.tsv
+output_topic_report.pdf
