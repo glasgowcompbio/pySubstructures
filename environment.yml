@@ -22,3 +22,4 @@ dependencies:
     - pymzml>=2.5.6
     - mass-spec-utils
     - pyMolNetEnhancer
+    - requests-cache>=1.2.0
