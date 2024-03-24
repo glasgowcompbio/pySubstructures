@@ -2,3 +2,31 @@ from pySubstructures.ms2lda.constants import MS2LDA_SERVER_URL
 
 MOTIFDB_SERVER_URL = MS2LDA_SERVER_URL + "motifdb/"
 METADATA_FIELDS = ["comment", "name", "annotation", "short_annotation"]
+
+# Defining Python constants for Mass2Motif databases
+EUPHORBIA_PLANT_MASS2MOTIFS = "Euphorbia Plant Mass2Motifs"
+MASSBANK_LIBRARY_DERIVED_MASS2MOTIFS = "Massbank library derived Mass2Motifs"
+GNPS_LIBRARY_DERIVED_MASS2MOTIFS = "GNPS library derived Mass2Motifs"
+PHOTORHABDUS_AND_XENORHABDUS_MASS2MOTIFS = "Photorhabdus and Xenorhabdus Mass2Motifs"
+LDB_MOTIFDB_POS = "LDB MotifDB POS"
+LDB_NEG_MOTIFDB_01 = "LDB_NEG_MotifDB_01"
+LDB_NEG_MOTIFDB_02 = "LDB_NEG_MotifDB_02"
+MIADB_POS_100 = "MIADB_pos_100"
+MIADB_POS_60 = "MIADB_pos_60"
+MIADB_POS_INDOLE = "MIADB_pos_indole"
+PLANOMONOSPORA_ASSOCIATED_MASS2MOTIFS = "Planomonospora-associated Mass2Motifs"
+RHAMNACEAE_PLANT_MASS2MOTIFS = "Rhamnaceae Plant Mass2Motifs"
+STREPTOMYCES_S29 = "Streptomyces S29"
+STREPTOMYCES_AND_SALINISPORA_MASS2MOTIFS = "Streptomyces and Salinispora Mass2Motifs"
+URINE_DERIVED_MASS2MOTIFS = "Urine derived Mass2Motifs"
+
+# Mapping motif names to their database IDs on ms2lda.org
+MOTIF_NAMES_TO_MS2LDA_DB = {
+    GNPS_LIBRARY_DERIVED_MASS2MOTIFS: 2,
+    MASSBANK_LIBRARY_DERIVED_MASS2MOTIFS: 4,
+    URINE_DERIVED_MASS2MOTIFS: 1,
+    EUPHORBIA_PLANT_MASS2MOTIFS: 3,
+    RHAMNACEAE_PLANT_MASS2MOTIFS: 5,
+    STREPTOMYCES_AND_SALINISPORA_MASS2MOTIFS: 6,
+    PHOTORHABDUS_AND_XENORHABDUS_MASS2MOTIFS: 16,
+}

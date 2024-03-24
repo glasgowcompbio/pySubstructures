@@ -1,14 +1,94 @@
 import glob
 import os
 
+from loguru import logger
 import numpy as np
 import requests
 import urllib3
 import certifi
 
 from pySubstructures.motifdb.constants import METADATA_FIELDS, MOTIFDB_SERVER_URL
+from pySubstructures.motifdb.constants import (
+    MOTIF_NAMES_TO_MS2LDA_DB,
+    GNPS_LIBRARY_DERIVED_MASS2MOTIFS,
+    MASSBANK_LIBRARY_DERIVED_MASS2MOTIFS,
+    URINE_DERIVED_MASS2MOTIFS,
+    EUPHORBIA_PLANT_MASS2MOTIFS,
+    RHAMNACEAE_PLANT_MASS2MOTIFS,
+    STREPTOMYCES_AND_SALINISPORA_MASS2MOTIFS,
+    PHOTORHABDUS_AND_XENORHABDUS_MASS2MOTIFS,
+)
 
 http = urllib3.PoolManager(cert_reqs="CERT_REQUIRED", ca_certs=certifi.where())
+
+
+def acquire_motifsets(args):
+    """
+    Acquires motif sets based on the user's selection from MS2LDA.org.
+
+    Args:
+        args (Namespace): Parsed command line arguments containing user preferences
+                          for including specific motif sets in the analysis.
+
+    Returns:
+        tuple: Contains three elements:
+               - motifdb_spectra: The spectra from the motif database.
+               - motifdb_metadata: Metadata associated with the motifs.
+               - motifdb_features: Features of the motifs.
+    """
+    # Initialize list to hold database IDs based on user selection
+    db_list = []
+
+    # Map user selections to motif database IDs
+    motif_selections = generate_motif_selections()
+
+    # Append selected database IDs to the list
+    for motif, db_id in motif_selections.items():
+        if getattr(args, motif) == "yes":
+            db_list.append(db_id)
+
+    # Handle user-defined motif sets, if any
+    if args.user_motif_sets not in [None, "None"]:
+        try:
+            user_motif_ids = [int(id) for id in args.user_motif_sets.split(",")]
+            db_list.extend(user_motif_ids)
+        except ValueError:
+            logger.warning(
+                "User motif set improperly formatted. Please ensure numbers are separated by commas or enter 'None'."
+            )
+
+    # Remove duplicates and acquire motifs from MS2LDA.org
+    db_list = list(set(db_list))
+    motifdb_spectra, motifdb_metadata, motifdb_features = acquire_motifdb(db_list)
+
+    return motifdb_spectra, motifdb_metadata, motifdb_features
+
+
+def generate_motif_selections():
+    """
+    Generates motif selections based on constants
+    """
+    return {
+        "gnps_motif_include": MOTIF_NAMES_TO_MS2LDA_DB[
+            GNPS_LIBRARY_DERIVED_MASS2MOTIFS
+        ],
+        "massbank_motif_include": MOTIF_NAMES_TO_MS2LDA_DB[
+            MASSBANK_LIBRARY_DERIVED_MASS2MOTIFS
+        ],
+        "urine_motif_include": MOTIF_NAMES_TO_MS2LDA_DB[URINE_DERIVED_MASS2MOTIFS],
+        "euphorbia_motif_include": MOTIF_NAMES_TO_MS2LDA_DB[
+            EUPHORBIA_PLANT_MASS2MOTIFS
+        ],
+        "rhamnaceae_motif_include": MOTIF_NAMES_TO_MS2LDA_DB[
+            RHAMNACEAE_PLANT_MASS2MOTIFS
+        ],
+        "strep_salin_motif_include": MOTIF_NAMES_TO_MS2LDA_DB[
+            STREPTOMYCES_AND_SALINISPORA_MASS2MOTIFS
+        ],
+        "photorhabdus_motif_include": MOTIF_NAMES_TO_MS2LDA_DB[
+            PHOTORHABDUS_AND_XENORHABDUS_MASS2MOTIFS
+        ],
+    }
 
 
 def acquire_motifdb(db_list, filter_threshold=0.95):
@@ -30,20 +110,6 @@ def acquire_motifdb(db_list, filter_threshold=0.95):
     return motifdb_spectra, motifdb_metadata, motifdb_features
 
 
-def get_motifset_list():
-    url = MOTIFDB_SERVER_URL + "list_motifsets"
-    output = http.request("GET", url)
-    motifset_list = output.json()
-    return motifset_list
-
-
-def _get_motifdb_token():
-    url = MOTIFDB_SERVER_URL + "initialise_api"
-    client = requests.session()
-    token = client.get(url).json()["token"]
-    return client, token
-
-
 def post_motifsets(motifsets, filter_threshold=0.95):
     client, token = _get_motifdb_token()
 
@@ -57,6 +123,20 @@ def post_motifsets(motifsets, filter_threshold=0.95):
     data["filter_threshold"] = filter_threshold  # Default value - not required
     output = client.post(url, data=data).json()
     return output
+
+
+def get_motifset_list():
+    url = MOTIFDB_SERVER_URL + "list_motifsets"
+    output = http.request("GET", url)
+    motifset_list = output.json()
+    return motifset_list
+
+
+def _get_motifdb_token():
+    url = MOTIFDB_SERVER_URL + "initialise_api"
+    client = requests.session()
+    token = client.get(url).json()["token"]
+    return client, token
 
 
 def get_motifset_metadata(motif_id):

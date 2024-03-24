@@ -1,13 +1,14 @@
 import argparse
 import os
 import sys
+
 from loguru import logger
 
 # Modify sys.path to include the parent directory
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
 
-from pySubstructures.motifdb.main import acquire_motifdb, FeatureMatcher
+from pySubstructures.motifdb.main import FeatureMatcher, acquire_motifsets
 from pySubstructures.ms2lda.feature_maker import MakeBinnedFeatures
 from pySubstructures.ms2lda.lda_variational import VariationalLDA
 from pySubstructures.ms2lda.loaders import LoadMGF
@@ -168,57 +169,6 @@ def parse_args():
         sys.exit(1)
 
     return args
-
-
-def acquire_motifsets(args):
-    """
-    Acquires motif sets based on the user's selection from MS2LDA.org.
-
-    Args:
-        args (Namespace): Parsed command line arguments containing user preferences
-                          for including specific motif sets in the analysis.
-
-    Returns:
-        tuple: Contains three elements:
-               - motifdb_spectra: The spectra from the motif database.
-               - motifdb_metadata: Metadata associated with the motifs.
-               - motifdb_features: Features of the motifs.
-    """
-    # Initialize list to hold database IDs based on user selection
-    db_list = []
-
-    # Map user selections to motif database IDs
-    motif_selections = {
-        "gnps_motif_include": 2,
-        "massbank_motif_include": 4,
-        "urine_motif_include": 1,
-        "euphorbia_motif_include": 3,
-        "rhamnaceae_motif_include": 5,
-        "strep_salin_motif_include": 6,
-        "photorhabdus_motif_include": 16,
-    }
-
-    # Append selected database IDs to the list
-    for motif, db_id in motif_selections.items():
-        if getattr(args, motif) == "yes":
-            db_list.append(db_id)
-
-    # Handle user-defined motif sets, if any
-    if args.user_motif_sets not in [None, "None"]:
-        try:
-            user_motif_ids = [int(id) for id in args.user_motif_sets.split(",")]
-            db_list.extend(user_motif_ids)
-        except ValueError:
-            logger.warning(
-                "User motif set improperly formatted. Please ensure numbers are separated by commas or enter 'None'."
-            )
-            sys.exit(1)
-
-    # Remove duplicates and acquire motifs from MS2LDA.org
-    db_list = list(set(db_list))
-    motifdb_spectra, motifdb_metadata, motifdb_features = acquire_motifdb(db_list)
-
-    return motifdb_spectra, motifdb_metadata, motifdb_features
 
 
 def get_single_quant_file_path(mzmine_path):
